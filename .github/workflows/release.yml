@@ -79,12 +79,12 @@ jobs:
 
       # secrets can't be read in a job-level `if`, so the no-op check lives
       # here instead — skips cleanly until CLOUDFLARE_API_TOKEN is configured.
+      # build:workers already sets NEXT_PUBLIC_DEMO_MODE=true - see package.json.
       - name: Build for Cloudflare
-        run: pnpm build:cloudflare
-        env:
-          STORAGE_DRIVER: r2
-          R2_BUCKET_BINDING: LOGGO_BUCKET
-          NEXT_PUBLIC_DEMO_MODE: "true"
+        run: pnpm build:workers
+
+      - name: Apply D1 migrations
+        run: pnpm exec wrangler d1 migrations apply loggo-demo --remote
 
       - name: Deploy
         run: pnpm exec wrangler deploy
