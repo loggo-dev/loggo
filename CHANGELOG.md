@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/loggo-dev/loggo/compare/v1.2.1...v1.2.2) (2026-09-06)
+
+
+### Bug Fixes
+
+* adjust eslint rules for sessionStorage state restoration and add .wrangler to ignored files ([2a56c14](https://github.com/loggo-dev/loggo/commit/2a56c148c0a679160ff63d1ea68876704ad2aef8))
+
 ## [1.2.1](https://github.com/loggo-dev/loggo/compare/v1.2.0...v1.2.1) (2026-09-06)
 
 
