@@ -11,11 +11,19 @@
 <p align="center">
   <a href="https://github.com/loggo-dev/loggo/actions/workflows/ci.yml"><img src="https://github.com/loggo-dev/loggo/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/loggo-dev/loggo/releases"><img src="https://img.shields.io/github/v/release/loggo-dev/loggo" alt="Latest release"></a>
-  <a href="https://github.com/loggo-dev/loggo/pkgs/container/recipery"><img src="https://img.shields.io/badge/ghcr.io-recipery--dev%2Frecipery-blue?logo=docker&logoColor=white" alt="Docker image"></a>
+  <a href="https://github.com/loggo-dev/loggo/pkgs/container/loggo"><img src="https://img.shields.io/badge/ghcr.io-loggo--dev%2Floggo-blue?logo=docker&logoColor=white" alt="Docker image"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="License"></a>
   <a href="https://loggo.dev"><img src="https://img.shields.io/badge/website-loggo.dev-orange" alt="Website"></a>
   <a href="https://docs.loggo.dev"><img src="https://img.shields.io/badge/docs-docs.loggo.dev-blue" alt="Documentation"></a>
 </p>
+
+## Quickstart (Docker)
+
+```sh
+docker compose up
+```
+
+This builds the image and starts Loggo with local SQLite + file storage, persisted to `./data`. Open http://localhost:3000.
 
 ## Develop
 
@@ -57,6 +65,8 @@ docker run -d \
   -v /path/to/your/data:/app/data \
   ghcr.io/loggo-dev/loggo:latest
 ```
+
+Or build and run it locally with `docker compose up` (see [Quickstart](#quickstart-docker)), or `make docker-up` / `make docker-down` / `make docker-logs`.
 
 ## Testing
 
