@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3](https://github.com/loggo-dev/loggo/compare/v1.2.2...v1.2.3) (2026-09-06)
+
+
+### Bug Fixes
+
+* update readOnly logic to incorporate DEMO_MODE and ensure proper storage handling ([6d9b551](https://github.com/loggo-dev/loggo/commit/6d9b55128c904c534d5363772757ad080426ce8b))
+
 ## [1.2.2](https://github.com/loggo-dev/loggo/compare/v1.2.1...v1.2.2) (2026-09-06)
 
 
