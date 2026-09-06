@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/loggo-dev/loggo/compare/v1.1.0...v1.2.0) (2026-09-06)
+
+
+### Features
+
+* add Docker support with Dockerfile, docker-compose, and .dockerignore ([f8a2912](https://github.com/loggo-dev/loggo/commit/f8a29123c1e0b01914e7c86bf3ec16af17d9431b))
+* enhance auth form UI with improved layout and styling ([3afb4da](https://github.com/loggo-dev/loggo/commit/3afb4dad86458938e3ae6fb8b6a03b241691d015))
+
 ## [1.1.0](https://github.com/loggo-dev/loggo/compare/v1.0.0...v1.1.0) (2026-09-06)
 
 
