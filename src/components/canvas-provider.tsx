@@ -38,6 +38,11 @@ export function CanvasProvider({ children, id }: { children: ReactNode; id?: str
   useEffect(() => {
     if (!id) return;
     const stored = sessionStorage.getItem(`loggo-canvas-${id}`);
+    // Restoring per-day canvas state when `id` changes has to read
+    // sessionStorage, an external system - a legitimate effect, even though
+    // it looks like the "adjusting state in response to a prop" pattern
+    // this rule otherwise catches.
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (stored) {
       try {
         const { z, x, y } = JSON.parse(stored);
@@ -45,12 +50,13 @@ export function CanvasProvider({ children, id }: { children: ReactNode; id?: str
         if (typeof x === "number") setPanX(x);
         if (typeof y === "number") setPanY(y);
         return;
-      } catch (e) { /* ignore */ }
+      } catch { /* ignore */ }
     }
     // Reset if no saved state
     setZoom(1);
     setPanX(0);
     setPanY(0);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [id]);
 
   useEffect(() => {

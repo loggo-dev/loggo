@@ -60,6 +60,9 @@ export function LogEditor({ initialTitle = "", initialBody = "", tags = [], savi
       },
     }];
     if (hasPasteHandler) {
+      // execute only runs when the user picks this command from the slash
+      // menu, never during render - same as the CodeMirror handlers below.
+      // eslint-disable-next-line react-hooks/refs
       list.push({
         id: "attachment",
         label: "Attachment",
