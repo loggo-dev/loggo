@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1788549662385,
-      "tag": "0000_early_spirit",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1788589362275,
-      "tag": "0001_known_big_bertha",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1788590512468,
-      "tag": "0002_careless_green_goblin",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1788598635060,
-      "tag": "0003_majestic_hemingway",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1788600640007,
-      "tag": "0004_petite_xorn",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1788679777523,
-      "tag": "0005_amusing_groot",
+      "when": 1788682111231,
+      "tag": "0000_nasty_jubilee",
       "breakpoints": true
     }
   ]

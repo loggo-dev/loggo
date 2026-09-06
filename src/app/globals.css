@@ -141,6 +141,13 @@
   .markdown p { @apply my-2; }
   .markdown ul { @apply my-2 list-disc pl-5; }
   .markdown ol { @apply my-2 list-decimal pl-5; }
+  /* Task list items pull 26px further left than the default 20px marker
+     gutter to line their checkbox up with where the bullet would sit
+     (see the `<li>` in markdown-preview.tsx) - without matching that extra
+     6px here, the hover highlight's rounded left edge overhangs the list's
+     own box and gets clipped by any scroll-clipped ancestor (e.g. a log
+     card's ScrollArea). */
+  .markdown ul.contains-task-list { @apply pl-[26px]; }
   .markdown code { @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.9em]; }
   .markdown pre { @apply my-3 overflow-x-auto rounded-lg border bg-muted/40 p-3; }
   .markdown pre code { @apply bg-transparent p-0; }

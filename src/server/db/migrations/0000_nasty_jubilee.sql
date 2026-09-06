@@ -31,6 +31,11 @@ CREATE TABLE `logs` (
 	`updated_at` text DEFAULT (current_timestamp) NOT NULL,
 	`deleted_at` text,
 	`mirror_dirty` integer DEFAULT false NOT NULL,
+	`pos_x` integer,
+	`pos_y` integer,
+	`width` integer,
+	`height` integer,
+	`z_index` integer DEFAULT 0 NOT NULL,
 	FOREIGN KEY (`workspace_id`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`author_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
@@ -78,6 +83,7 @@ CREATE TABLE `users` (
 	`email` text NOT NULL,
 	`password_hash` text NOT NULL,
 	`name` text NOT NULL,
+	`color` text DEFAULT 'bg-blue-500' NOT NULL,
 	`role` text DEFAULT 'user' NOT NULL,
 	`created_at` text DEFAULT (current_timestamp) NOT NULL,
 	`disabled_at` text
@@ -99,6 +105,8 @@ CREATE TABLE `workspaces` (
 	`id` text PRIMARY KEY NOT NULL,
 	`slug` text NOT NULL,
 	`name` text NOT NULL,
+	`color` text DEFAULT 'bg-blue-500' NOT NULL,
+	`icon` text DEFAULT 'gallery' NOT NULL,
 	`kind` text NOT NULL,
 	`created_by` text NOT NULL,
 	`created_at` text DEFAULT (current_timestamp) NOT NULL,

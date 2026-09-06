@@ -8,19 +8,25 @@ export function useResize({ width, height, onCommit }: { width: number | null | 
   const startMouse = useRef<{ x: number; y: number } | null>(null);
   const startSize = useRef<{ w: number; h: number } | null>(null);
 
+  // Read via ref, not reactively - see the matching comment in use-drag-position.ts.
+  const { zoomRef } = useCanvas();
+
   const onPointerDown = (event: PointerEvent) => {
     if (event.button !== 0) return;
     event.stopPropagation(); // prevent drag
     event.preventDefault(); // prevent text selection
     startMouse.current = { x: event.clientX, y: event.clientY };
     const rect = (event.currentTarget as HTMLElement).closest(".group\\/card")?.getBoundingClientRect();
-    startSize.current = { w: rect?.width ?? width ?? 320, h: rect?.height ?? height ?? 220 };
+    // getBoundingClientRect() reports on-screen (zoom-scaled) pixels, but
+    // width/height are canvas-space values the CSS `scale(zoom)` ancestor
+    // then scales up for display - dividing back out by zoom here is what
+    // makes this match `width`/`height` instead of snapping the card to its
+    // zoomed-out (or zoomed-in) size the instant you grab the handle.
+    const zoom = zoomRef.current;
+    startSize.current = { w: (rect?.width ?? width ?? 320) / zoom, h: (rect?.height ?? height ?? 220) / zoom };
     setTargetSize(startSize.current);
     event.currentTarget.setPointerCapture(event.pointerId);
   };
-
-  // Read via ref, not reactively - see the matching comment in use-drag-position.ts.
-  const { zoomRef } = useCanvas();
   const onPointerMove = (event: PointerEvent) => {
     if (!startMouse.current || !startSize.current) return;
     const zoom = zoomRef.current;

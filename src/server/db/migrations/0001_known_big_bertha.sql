@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD `color` text DEFAULT 'bg-blue-500' NOT NULL;

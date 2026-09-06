@@ -38,11 +38,11 @@ describe("filterEditorCommands", () => {
   });
 
   it("filters by label", () => {
-    expect(filterEditorCommands(defaultEditorCommands, "ta").map((c) => c.id)).toEqual(["task"]);
+    expect(filterEditorCommands(defaultEditorCommands, "ta").map((c) => c.id)).toEqual(["task", "italic", "table"]);
   });
 
   it("filters by keyword", () => {
-    expect(filterEditorCommands(defaultEditorCommands, "hr").map((c) => c.id)).toEqual(["divider"]);
+    expect(filterEditorCommands(defaultEditorCommands, "hr").map((c) => c.id)).toEqual(["divider", "strikethrough", "link"]);
   });
 
   it("is case-insensitive", () => {

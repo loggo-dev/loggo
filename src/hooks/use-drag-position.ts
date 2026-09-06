@@ -79,7 +79,7 @@ export function useDragPosition({ x, y, onCommit, onClick }: { x: number; y: num
   const currentDx = targetPos ? targetPos.x - x : 0;
   const currentDy = targetPos ? targetPos.y - y : 0;
 
-  const style: CSSProperties | undefined = targetPos ? { transform: `translate3d(${currentDx}px, ${currentDy}px, 0)`, zIndex: 30, cursor: isDraggingActive ? "grabbing" : undefined, willChange: "transform" } : undefined;
+  const style: CSSProperties | undefined = targetPos ? { transform: `translate(${currentDx}px, ${currentDy}px)`, zIndex: 30, cursor: isDraggingActive ? "grabbing" : undefined, willChange: isDraggingActive ? "transform" : "auto" } : undefined;
 
   return { isDragging: targetPos !== null, style, handlers: { onPointerDown, onPointerMove, onPointerUp: endDrag, onPointerCancel: endDrag, onClick: handleClick } };
 }

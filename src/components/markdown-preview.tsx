@@ -69,7 +69,12 @@ export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, onDele
   const matches = [...body.matchAll(ATTACHMENT_PATTERN)];
   const strippedBody = body.replace(ATTACHMENT_PATTERN, "").trim();
 
-  return <div className={cn("flex flex-col h-full markdown", compact && "markdown-compact text-sm")}>
+  // min-h-full (not h-full): inside a ScrollArea, a hard h-full makes this
+  // box exactly the viewport's height, so the scroll area sees zero overflow
+  // and never lets you scroll down to the attachments `mt-auto` pushed to
+  // the bottom - min-h-full still fills short cards but lets tall content
+  // grow past the viewport so it stays reachable by scrolling.
+  return <div className={cn("flex flex-col min-h-full markdown", compact && "markdown-compact text-sm")}>
     {strippedBody ? (
       <div className="flex-1">
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
@@ -161,10 +166,14 @@ export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, onDele
     ) : null}
 
     {matches.length > 0 ? (
-      // -mx-2 px-2 gives the focus/hover ring on the first and last card room
-      // inside the scrollable area - without it, overflow-x-auto clips the
-      // ring flush against the container edge.
-      <AttachmentGroup className="mt-auto pt-2 empty:hidden -mx-2 px-2">
+      // -mx-px px-px gives the focus ring on the first/last card just enough
+      // room inside the scrollable area that overflow-x-auto doesn't clip it
+      // flush against the edge. Kept to 1px on purpose: this padding counts
+      // toward the strip's own scrollWidth, and the canvas's wheel handler
+      // (canvas-provider.tsx) hands a scroll gesture to this strip instead of
+      // panning whenever it's scrollable - a few extra px here could tip a
+      // row of attachments that just barely fit into "scrollable".
+      <AttachmentGroup className="mt-auto pt-2 empty:hidden -mx-px px-px">
         {matches.map((match, i) => {
           const text = match[1] || match[2] || "Attachment";
           const url = match[3];

@@ -108,7 +108,7 @@ export function useCanvasInteraction() {
 const INTERACTION_IDLE_DELAY = 150;
 
 function transformString(x: number, y: number, z: number) {
-  return `translate3d(${x}px, ${y}px, 0) scale(${z})`;
+  return `translate(${x}px, ${y}px) scale(${z})`;
 }
 
 export function CanvasViewport({ children }: { children: ReactNode }) {
@@ -150,10 +150,12 @@ export function CanvasViewport({ children }: { children: ReactNode }) {
   const markInteracting = useCallback(() => {
     setIsInteracting(true);
     isInteractingRef.current = true;
+    if (transformRef.current) transformRef.current.style.willChange = "transform";
     if (interactionIdleTimeout.current) clearTimeout(interactionIdleTimeout.current);
     interactionIdleTimeout.current = setTimeout(() => {
       setIsInteracting(false);
       isInteractingRef.current = false;
+      if (transformRef.current) transformRef.current.style.willChange = "auto";
     }, INTERACTION_IDLE_DELAY);
   }, [setIsInteracting]);
 
@@ -208,7 +210,20 @@ export function CanvasViewport({ children }: { children: ReactNode }) {
       if (e.target instanceof Element) {
         const scrollable = e.target.closest('.overflow-y-auto, .overflow-auto, .overflow-x-auto, [data-slot="scroll-area-viewport"], .cm-scroller');
         if (scrollable) {
-          const isScrollingY = Math.abs(e.deltaY) > Math.abs(e.deltaX);
+          // A two-finger trackpad pan is rarely perfectly axis-aligned, so a
+          // mostly-vertical pan can carry a little incidental deltaX. That's
+          // fine for most scrollable elements (deltaX only matters once
+          // deltaY loses the `>` comparison below), but the attachment strip
+          // only ever scrolls horizontally - so for it specifically, require
+          // deltaX to clearly dominate before treating the gesture as "scroll
+          // the strip" rather than "pan the canvas", or a vertical pan over a
+          // card's attachments would keep getting eaten sideways. A
+          // deliberate horizontal swipe (or shift+wheel) still clears this
+          // easily and reaches attachments further along the strip.
+          const isAttachmentStrip = scrollable.matches('[data-slot="attachment-group"]');
+          const isScrollingY = isAttachmentStrip
+            ? Math.abs(e.deltaX) <= Math.abs(e.deltaY) * 1.5
+            : Math.abs(e.deltaY) > Math.abs(e.deltaX);
           let canScroll = false;
 
           if (isScrollingY) {
@@ -299,7 +314,7 @@ export function CanvasViewport({ children }: { children: ReactNode }) {
       onPointerCancel={handlePointerUp}
       onContextMenu={(e) => { if (e.shiftKey) e.preventDefault(); }}
     >
-      <div ref={transformRef} style={{ transform: transformString(panX, panY, zoom), transformOrigin: "0 0", willChange: "transform" }} className="absolute inset-0">
+      <div ref={transformRef} style={{ transform: transformString(panX, panY, zoom), transformOrigin: "0 0" }} className="absolute inset-0">
         {children}
       </div>
     </div>
