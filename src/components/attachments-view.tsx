@@ -3,7 +3,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileIcon, Trash2Icon } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
@@ -12,19 +12,20 @@ import { useWorkspace } from "@/components/workspace-provider";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Attachment, AttachmentContent, AttachmentMedia, AttachmentTitle, AttachmentDescription, AttachmentActions, AttachmentAction } from "@/components/ui/attachment";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { ImagePreviewDialog } from "@/components/image-preview-dialog";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { SimplePagination } from "@/components/ui/simple-pagination";
 import { AttachmentFilterMenu } from "@/components/attachment-filter-menu";
-import { DownloadIcon, ExternalLinkIcon, MoreVerticalIcon } from "lucide-react";
+import { DownloadIcon, ExternalLinkIcon, FileTextIcon, MoreVerticalIcon } from "lucide-react";
 
 function fileSize(size: number) {
   return size < 1024 * 1024 ? `${Math.ceil(size / 1024)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`;
 }
 
 export function AttachmentsView() {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -66,7 +67,7 @@ export function AttachmentsView() {
       </div>
       {attachments.data?.attachments.length ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {attachments.data.attachments.map(({ attachment, logTitle, day }) => {
+          {attachments.data.attachments.map(({ attachment, day }) => {
             const url = `/api/workspaces/${workspace.id}/attachments/${attachment.id}/file`;
             const image = attachment.mime.startsWith("image/");
             const text = attachment.filename.replace(`${attachment.id}-`, "");
@@ -84,10 +85,7 @@ export function AttachmentsView() {
                 </AttachmentMedia>
                 <AttachmentContent>
                   <AttachmentTitle className="truncate">{text}</AttachmentTitle>
-                  <AttachmentDescription className="flex justify-between items-center pr-1">
-                    <span>{ext} · {fileSize(attachment.size)}</span>
-                    <Link href={`/d/${day}`} className="hover:underline text-muted-foreground z-10 relative" onClick={(e) => e.stopPropagation()}>{logTitle ?? day}</Link>
-                  </AttachmentDescription>
+                  <AttachmentDescription>{ext} · {fileSize(attachment.size)}</AttachmentDescription>
                 </AttachmentContent>
               </>
             );
@@ -95,16 +93,11 @@ export function AttachmentsView() {
             const card = (
               <Attachment key={attachment.id} data-slot="attachment" className="w-full relative group/menu focus-within:ring-1 focus-within:ring-ring transition-colors">
                 {image ? (
-                  <Dialog>
-                    <DialogTrigger render={<button type="button" className="flex flex-1 min-w-0 items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} />}>
-                      {innerContent}
-                    </DialogTrigger>
-                    <DialogContent className="max-w-[98vw] w-[98vw] h-[98vh] border-none bg-transparent p-0 shadow-none flex items-center justify-center">
-                      <DialogTitle className="sr-only">{text}</DialogTitle>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={url} alt={text} className="w-full h-full object-contain" />
-                    </DialogContent>
-                  </Dialog>
+                  <ImagePreviewDialog
+                    src={url}
+                    alt={text}
+                    trigger={<button type="button" className="flex flex-1 min-w-0 items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>{innerContent}</button>}
+                  />
                 ) : (
                   <a href={url} target="_blank" rel="noreferrer" className="flex flex-1 min-w-0 items-center gap-2 cursor-pointer no-underline hover:opacity-80 transition-opacity">
                     {innerContent}
@@ -124,6 +117,9 @@ export function AttachmentsView() {
                         a.click();
                         document.body.removeChild(a);
                       }}><DownloadIcon data-icon="inline-start" />Download</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push(`/d/${day}`)}><FileTextIcon data-icon="inline-start" />View Log</DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteId(attachment.id)}>
                         <Trash2Icon data-icon="inline-start" />Delete
                       </DropdownMenuItem>
@@ -153,6 +149,11 @@ export function AttachmentsView() {
                   }}>
                     <DownloadIcon data-icon="inline-start" />Download
                   </ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/d/${day}`); }}>
+                    <FileTextIcon data-icon="inline-start" />View Log
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
                   <ContextMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(attachment.id); }}>
                     <Trash2Icon data-icon="inline-start" />Delete
                   </ContextMenuItem>

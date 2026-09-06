@@ -8,9 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Attachment, AttachmentContent, AttachmentGroup, AttachmentMedia, AttachmentTitle, AttachmentDescription, AttachmentActions, AttachmentAction } from "@/components/ui/attachment";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { ImagePreviewDialog } from "@/components/image-preview-dialog";
 import { useCanvasInteraction } from "@/components/canvas-provider";
-import { FileIcon, DownloadIcon, ExternalLinkIcon, MoreVerticalIcon, Trash2Icon, VideoIcon, XIcon } from "lucide-react";
+import { FileIcon, DownloadIcon, ExternalLinkIcon, MoreVerticalIcon, Trash2Icon, VideoIcon } from "lucide-react";
 import type { TaskSummary } from "@/lib/api-client";
 import { cn, humanizeDate } from "@/lib/utils";
 
@@ -203,19 +203,11 @@ export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, onDele
           const card = (
             <Attachment data-slot="attachment" className="w-fit pr-4 max-w-64 relative group/menu focus-within:ring-1 focus-within:ring-ring transition-colors flex-none snap-start">
               {isImage ? (
-                <Dialog>
-                  <DialogTrigger render={<button type="button" className="flex items-center gap-2 flex-1 cursor-pointer hover:opacity-80 transition-opacity min-w-0" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} />}>
-                    {innerContent}
-                  </DialogTrigger>
-                  <DialogContent showCloseButton={false} className="w-fit h-fit max-w-[90vw] sm:max-w-[90vw] max-h-[90vh] border-none bg-transparent p-0 shadow-none flex items-center justify-center">
-                    <DialogTitle className="sr-only">{text}</DialogTitle>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={resolved} alt={text} className="block max-w-[90vw] max-h-[90vh] w-auto h-auto rounded-lg object-contain" />
-                    <DialogClose className="absolute top-3 right-3 z-10 flex size-8 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70" aria-label="Close">
-                      <XIcon className="size-4" />
-                    </DialogClose>
-                  </DialogContent>
-                </Dialog>
+                <ImagePreviewDialog
+                  src={resolved}
+                  alt={text}
+                  trigger={<button type="button" className="flex items-center gap-2 flex-1 cursor-pointer hover:opacity-80 transition-opacity min-w-0" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>{innerContent}</button>}
+                />
               ) : (
                 <a href={resolved} target="_blank" rel="noreferrer" className="flex items-center gap-2 flex-1 cursor-pointer no-underline hover:opacity-80 transition-opacity min-w-0" onClick={(e) => e.stopPropagation()}>
                   {innerContent}

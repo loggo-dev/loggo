@@ -68,8 +68,11 @@ export function TemplateSettings() {
         </CardHeader>
         <CardContent>
           <RadioGroup value={mode} onValueChange={(val: "today_only" | "any_visited_day") => { setModeState(val); setMode.mutate(val); }} className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg">
-            <label htmlFor="mode-today" className={`relative flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all hover:bg-muted/50 ${mode === "today_only" ? "border-primary ring-1 ring-primary bg-primary/5" : "border-border"}`}>
-              <RadioGroupItem value="today_only" id="mode-today" className="sr-only" />
+            <label htmlFor="mode-today" className={`relative flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all hover:bg-muted/50 ${mode === "today_only" ? "border-primary ring-1 ring-primary bg-primary/5" : "border-border"}`}>
+              {/* RadioGroupItem's own base classes (relative flex size-4 ...) don't fully
+                  yield to a merged "sr-only" className, so it stays visible instead of
+                  hidden - wrapping it in a separate sr-only element hides it reliably. */}
+              <span className="sr-only"><RadioGroupItem value="today_only" id="mode-today" /></span>
               <div className={`flex size-8 shrink-0 items-center justify-center rounded-md ${mode === "today_only" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                 <Calendar1Icon className="size-4" />
               </div>
@@ -79,8 +82,8 @@ export function TemplateSettings() {
               </div>
             </label>
 
-            <label htmlFor="mode-any" className={`relative flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-all hover:bg-muted/50 ${mode === "any_visited_day" ? "border-primary ring-1 ring-primary bg-primary/5" : "border-border"}`}>
-              <RadioGroupItem value="any_visited_day" id="mode-any" className="sr-only" />
+            <label htmlFor="mode-any" className={`relative flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-all hover:bg-muted/50 ${mode === "any_visited_day" ? "border-primary ring-1 ring-primary bg-primary/5" : "border-border"}`}>
+              <span className="sr-only"><RadioGroupItem value="any_visited_day" id="mode-any" /></span>
               <div className={`flex size-8 shrink-0 items-center justify-center rounded-md ${mode === "any_visited_day" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                 <CalendarDaysIcon className="size-4" />
               </div>
