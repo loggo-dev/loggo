@@ -1,0 +1,17 @@
+# Changelog
+
+## 1.0.0 (2026-09-06)
+
+
+### Features
+
+* add database schema for attachments, logs, tags, and workspaces ([026d82a](https://github.com/loggo-dev/loggo/commit/026d82abb76ab1e37c90e3eca4d288b3151bc9f9))
+* add initial project structure with basic components and configuration ([e78e198](https://github.com/loggo-dev/loggo/commit/e78e198c84bf6d93b4cccc839bc7d39fe3119b4c))
+* add internal routes for demo reseeding and update documentation for feature changes ([c5254df](https://github.com/loggo-dev/loggo/commit/c5254df0d0f3d0bcae6d5f773fcf9a30a01bd261))
+* add zIndex and duplicate log functionality to logs ([defc963](https://github.com/loggo-dev/loggo/commit/defc963c6947260226028c192648db3e77f315d0))
+* enhance appearance and instance settings UI with responsive layouts and tabbed theme selection ([028a412](https://github.com/loggo-dev/loggo/commit/028a412a4c0ebcc54eae5424d1917459d110c965))
+* enhance attachments view with image preview dialog and routing for log details ([2ed963b](https://github.com/loggo-dev/loggo/commit/2ed963bc3cb37b4fb82dddbf3d4e9fa5ff40668c))
+* implement template management with CRUD operations and apply templates functionality ([4b488bb](https://github.com/loggo-dev/loggo/commit/4b488bb3b716f30d2d2c84c2b009406038ca5baf))
+* refactor canvas context into separate transform and interaction contexts ([bb4dbe1](https://github.com/loggo-dev/loggo/commit/bb4dbe1cd74742442db4655bddb114dc196af7e9))
+* update README with new logo and additional badge links for CI, releases, Docker image, license, and documentation ([149c72f](https://github.com/loggo-dev/loggo/commit/149c72f8fca4b0afd708e4a2690860309484d173))
+* update WorkspaceIcon to use color prop for better styling control ([d398c66](https://github.com/loggo-dev/loggo/commit/d398c66ba2336264d71f45796e0a9afd29431a6f))
