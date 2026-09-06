@@ -43,7 +43,8 @@ export const workspaces = sqliteTable(
     color: text("color").notNull().default("bg-blue-500"),
     icon: text("icon").notNull().default("gallery"),
     kind: text("kind", { enum: ["personal", "shared"] }).notNull(),
-    createdBy: text("created_by").notNull().references(() => users.id),
+    templateMode: text("template_mode", { enum: ["today_only", "any_visited_day"] }).notNull().default("today_only"),
+    createdBy: text("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
     createdAt: text("created_at").notNull().default(sql`(current_timestamp)`),
   },
   (table) => [uniqueIndex("workspaces_slug_idx").on(table.slug)],
@@ -64,8 +65,8 @@ export const logs = sqliteTable(
   "logs",
   {
     id: text("id").primaryKey(),
-    workspaceId: text("workspace_id").notNull().references(() => workspaces.id),
-    authorId: text("author_id").notNull().references(() => users.id),
+    workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+    authorId: text("author_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     day: text("day").notNull(),
     title: text("title"),
     body: text("body").notNull(),
@@ -139,9 +140,34 @@ export const settings = sqliteTable("settings", {
   value: text("value").notNull(),
 });
 
+export const templates = sqliteTable(
+  "templates",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+    title: text("title"),
+    body: text("body").notNull(),
+    enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+    createdAt: text("created_at").notNull().default(sql`(current_timestamp)`),
+    mirrorDirty: integer("mirror_dirty", { mode: "boolean" }).notNull().default(false),
+  },
+  (table) => [index("templates_workspace_idx").on(table.workspaceId)]
+);
+
+export const appliedTemplates = sqliteTable(
+  "applied_templates",
+  {
+    workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+    day: text("day").notNull(),
+    appliedAt: text("applied_at").notNull().default(sql`(current_timestamp)`),
+  },
+  (table) => [primaryKey({ columns: [table.workspaceId, table.day] })]
+);
+
 export type User = typeof users.$inferSelect;
 export type Workspace = typeof workspaces.$inferSelect;
 export type Log = typeof logs.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
 export type Tag = typeof tags.$inferSelect;
 export type Attachment = typeof attachments.$inferSelect;
+export type Template = typeof templates.$inferSelect;

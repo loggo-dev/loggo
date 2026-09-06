@@ -31,7 +31,7 @@ function ResizeHandle({ handlers }: { handlers: ReturnType<typeof useResize>["ha
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-function CardBody({ log, workspaceId, tasks, onToggleTask, onDeleteAttachment, isResized }: { log: LogSummary; workspaceId: string; tasks?: TaskSummary[]; onToggleTask?: (taskId: string, done: boolean) => void; onDeleteAttachment?: (attachmentId: string, markdown: string) => void; isResized?: boolean }) {
+export function CardBody({ log, workspaceId, tasks, onToggleTask, onDeleteAttachment, isResized }: { log: LogSummary; workspaceId: string; tasks?: TaskSummary[]; onToggleTask?: (taskId: string, done: boolean) => void; onDeleteAttachment?: (attachmentId: string, markdown: string) => void; isResized?: boolean }) {
   const shape = classifyLog(log.body);
   const containerClass = isResized ? "flex-1 min-h-0" : "max-h-80 [&>[data-slot=scroll-area-viewport]]:h-auto [&>[data-slot=scroll-area-viewport]]:max-h-80";
 
@@ -132,7 +132,7 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
   </ContextMenuTrigger><ContextMenuContent><ContextMenuGroup>
     <ContextMenuItem onClick={() => setEditing(true)}><PencilIcon />Edit</ContextMenuItem>
     <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(log.body); toast.success("Markdown copied"); }}><CopyIcon />Copy as markdown</ContextMenuItem>
-    <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(`${location.origin}/logs/${log.id}`); toast.success("Link copied"); }}><ExternalLinkIcon />Copy link</ContextMenuItem>
+    <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(`${location.origin}/d/${log.day}`); toast.success("Link copied"); }}><ExternalLinkIcon />Copy link</ContextMenuItem>
     {workspaces.length > 1 ? <ContextMenuSub><ContextMenuSubTrigger><FolderInputIcon />Move to workspace</ContextMenuSubTrigger><ContextMenuSubContent>{workspaces.filter((candidate) => candidate.id !== workspace.id).map((candidate) => <ContextMenuItem key={candidate.id} onClick={() => move.mutate(candidate.id)}>{candidate.name}</ContextMenuItem>)}</ContextMenuSubContent></ContextMenuSub> : null}
   </ContextMenuGroup>
   {(drag?.onBringToFront || drag?.onSendToBack || onDuplicate) ? <><ContextMenuSeparator /><ContextMenuGroup>

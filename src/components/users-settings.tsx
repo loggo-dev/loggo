@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontalIcon, PencilIcon, PlusIcon, UserCheckIcon, UserXIcon } from "lucide-react";
+import { MoreHorizontalIcon, PencilIcon, PlusIcon, UserCheckIcon, UserXIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api, type UserSummary } from "@/lib/api-client";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export function UsersSettings() {
@@ -20,12 +21,22 @@ export function UsersSettings() {
   const users = useQuery({ queryKey: ["admin-users"], queryFn: api.adminUsers });
   const [createOpen, setCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserSummary | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserSummary | null>(null);
 
   const refreshUsers = () => {
     void queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     void queryClient.invalidateQueries({ queryKey: ["me"] });
   };
 
+  const removeUser = useMutation({
+    mutationFn: (id: string) => api.deleteUser(id),
+    onSuccess: () => {
+      setDeletingUser(null);
+      refreshUsers();
+      toast.success("User deleted");
+    },
+    onError: (error) => toast.error(error.message),
+  });
   const create = useMutation({
     mutationFn: (values: UserFormValues) => api.createUser(values),
     onSuccess: () => {
@@ -105,6 +116,9 @@ export function UsersSettings() {
                           <DropdownMenuItem disabled={user.id === currentUser.id} onClick={() => update.mutate({ id: user.id, values: { disabled: !user.disabledAt } })}>
                             {user.disabledAt ? <UserCheckIcon /> : <UserXIcon />}{user.disabledAt ? "Enable" : "Disable"}
                           </DropdownMenuItem>
+                          <DropdownMenuItem disabled={user.id === currentUser.id} className="text-destructive focus:text-destructive" onClick={() => setDeletingUser(user)}>
+                            <TrashIcon />Delete
+                          </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -121,6 +135,32 @@ export function UsersSettings() {
 
       {createOpen ? <UserFormDialog open onOpenChange={setCreateOpen} user={null} userCount={users.data?.users.length ?? 0} pending={create.isPending} onSubmit={(values) => create.mutate(values)} /> : null}
       {editingUser ? <UserFormDialog open onOpenChange={(open) => { if (!open) setEditingUser(null); }} user={editingUser} userCount={users.data?.users.length ?? 0} pending={update.isPending} onSubmit={updateFromDialog} /> : null}
+
+      <AlertDialog open={!!deletingUser} onOpenChange={(open) => { if (!open) setDeletingUser(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {deletingUser?.name}? This will permanently delete the user, all their personal workspaces, and associated files. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              variant="destructive" 
+              disabled={removeUser.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (deletingUser) {
+                  removeUser.mutate(deletingUser.id);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

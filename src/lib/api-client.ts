@@ -4,12 +4,13 @@ import type { UserColor } from "@/lib/user-colors";
 import type { WorkspaceColor, WorkspaceIconName } from "@/lib/workspace-appearance";
 
 export type UserSummary = { id: string; email: string; name: string; color: UserColor; role: "admin" | "user"; disabledAt?: string | null; createdAt?: string };
-export type WorkspaceSummary = { id: string; slug: string; name: string; color: WorkspaceColor; icon: WorkspaceIconName; kind: "personal" | "shared"; role?: "owner" | "member" };
+export type WorkspaceSummary = { id: string; slug: string; name: string; color: WorkspaceColor; icon: WorkspaceIconName; kind: "personal" | "shared"; role?: "owner" | "member"; templateMode?: "today_only" | "any_visited_day" };
 export type AdminWorkspaceSummary = { workspace: WorkspaceSummary; members: { userId: string; role: string }[] };
 export type LogSummary = { id: string; workspaceId: string; authorId: string; authorName: string; day: string; title: string | null; body: string; createdAt: string; updatedAt: string; tags: string[]; mirrorDirty: boolean; posX: number | null; posY: number | null; width: number | null; height: number | null; zIndex: number };
 export type LogDetail = Omit<LogSummary, "authorName"> & { author: { id: string; name: string }; workspace: { id: string; slug: string; name: string }; tasks: TaskSummary[] };
 export type TaskSummary = { id: string; logId: string; text: string; done: boolean; dueDate: string | null; lineNo: number; completedAt: string | null; logTitle?: string | null; day?: string };
 export type TagSummary = { id: string; name: string; count: number };
+export type TemplateSummary = { id: string; workspaceId: string; title: string | null; body: string; enabled: boolean; createdAt: string };
 export type AttachmentSummary = { attachment: { id: string; logId: string; filename: string; mime: string; size: number; createdAt: string }; logTitle: string | null; day: string };
 export type SearchResult = { type: "log" | "tag" | "task"; id: string; title: string; snippet: string; day: string | null };
 
@@ -52,10 +53,18 @@ export const api = {
   adminUsers: async () => readJson<{ users: UserSummary[] }>(await apiClient.api.admin.users.$get()),
   createUser: async (values: { name: string; email: string; password: string; role: "admin" | "user"; color?: UserColor }) => readJson<UserSummary>(await apiClient.api.admin.users.$post({ json: values })),
   updateUser: async (userId: string, values: { name?: string; color?: UserColor; password?: string; role?: "admin" | "user"; disabled?: boolean }) => readJson<{ ok: true }>(await apiClient.api.admin.users[":userId"].$patch({ param: { userId }, json: values })),
+  deleteUser: async (userId: string) => readJson<{ ok: true }>(await apiClient.api.admin.users[":userId"].$delete({ param: { userId } })),
   adminWorkspaces: async () => readJson<{ workspaces: AdminWorkspaceSummary[] }>(await apiClient.api.admin.workspaces.$get()),
   createWorkspace: async (values: { name: string; color: WorkspaceColor; icon: WorkspaceIconName; memberIds: string[] }) => readJson<WorkspaceSummary>(await apiClient.api.admin.workspaces.$post({ json: values })),
   updateWorkspace: async (workspaceId: string, values: { name: string; color: WorkspaceColor; icon: WorkspaceIconName }) => readJson<{ ok: true }>(await apiClient.api.admin.workspaces[":workspaceId"].$patch({ param: { workspaceId }, json: values })),
   setWorkspaceMembers: async (workspaceId: string, userIds: string[]) => readJson<{ ok: true }>(await apiClient.api.admin.workspaces[":workspaceId"].members.$put({ param: { workspaceId }, json: { userIds } })),
+  deleteWorkspace: async (workspaceId: string) => readJson<{ ok: true }>(await apiClient.api.admin.workspaces[":workspaceId"].$delete({ param: { workspaceId } })),
   instance: async () => readJson<{ settings: Record<string, string> }>(await apiClient.api.admin.instance.$get()),
   updateInstance: async (values: Record<string, string>) => readJson<{ ok: true }>(await apiClient.api.admin.instance.$put({ json: values })),
+  templates: async (workspaceId: string) => readJson<{ templates: TemplateSummary[] }>(await apiClient.api.workspaces[":workspaceId"].templates.$get({ param: { workspaceId } })),
+  createTemplate: async (workspaceId: string, values: { title?: string | null; body: string; enabled?: boolean }) => readJson<{ template: TemplateSummary }>(await apiClient.api.workspaces[":workspaceId"].templates.$post({ param: { workspaceId }, json: values })),
+  updateTemplate: async (workspaceId: string, templateId: string, values: { title?: string | null; body?: string; enabled?: boolean }) => readJson<{ template: TemplateSummary }>(await apiClient.api.workspaces[":workspaceId"].templates[":id"].$put({ param: { workspaceId, id: templateId }, json: values })),
+  deleteTemplate: async (workspaceId: string, templateId: string) => readJson<{ success: boolean }>(await apiClient.api.workspaces[":workspaceId"].templates[":id"].$delete({ param: { workspaceId, id: templateId } })),
+  applyTemplates: async (workspaceId: string, day: string) => readJson<{ applied: boolean }>(await apiClient.api.workspaces[":workspaceId"].templates.apply.$post({ param: { workspaceId }, json: { day } })),
+  updateTemplateMode: async (workspaceId: string, mode: "today_only" | "any_visited_day") => readJson<{ success: boolean }>(await apiClient.api.workspaces[":workspaceId"].templates.mode.$put({ param: { workspaceId }, json: { mode } })),
 };

@@ -31,7 +31,7 @@ export async function createPersonalWorkspace(db: AppDb, user: { id: string; nam
 }
 
 export async function listUserWorkspaces(db: AppDb, userId: string) {
-  return db.select({ id: workspaces.id, slug: workspaces.slug, name: workspaces.name, color: workspaces.color, icon: workspaces.icon, kind: workspaces.kind, role: workspaceMembers.role })
+  return db.select({ id: workspaces.id, slug: workspaces.slug, name: workspaces.name, color: workspaces.color, icon: workspaces.icon, kind: workspaces.kind, templateMode: workspaces.templateMode, role: workspaceMembers.role })
     .from(workspaceMembers).innerJoin(workspaces, eq(workspaceMembers.workspaceId, workspaces.id)).where(eq(workspaceMembers.userId, userId));
 }
 
@@ -58,4 +58,18 @@ export async function setWorkspaceMembers(db: AppDb, workspaceId: string, userId
     await tx.delete(workspaceMembers).where(eq(workspaceMembers.workspaceId, workspaceId));
     await tx.insert(workspaceMembers).values(members.map((userId) => ({ workspaceId, userId, role: userId === workspace.createdBy ? "owner" as const : "member" as const })));
   });
+}
+
+export async function deleteWorkspace(db: AppDb, storage: import("./storage").Storage | null, workspaceId: string) {
+  const workspace = (await db.select().from(workspaces).where(eq(workspaces.id, workspaceId)).limit(1))[0];
+  if (!workspace) throw new NotFoundError("Workspace not found");
+
+  if (storage) {
+    const files = await storage.list(`workspaces/${workspace.slug}/`);
+    for (const file of files) {
+      await storage.delete(file);
+    }
+  }
+
+  await db.delete(workspaces).where(eq(workspaces.id, workspaceId));
 }

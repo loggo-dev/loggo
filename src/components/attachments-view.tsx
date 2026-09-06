@@ -86,7 +86,7 @@ export function AttachmentsView() {
                   <AttachmentTitle className="truncate">{text}</AttachmentTitle>
                   <AttachmentDescription className="flex justify-between items-center pr-1">
                     <span>{ext} · {fileSize(attachment.size)}</span>
-                    <Link href={`/logs/${attachment.logId}`} className="hover:underline text-muted-foreground z-10 relative" onClick={(e) => e.stopPropagation()}>{logTitle ?? day}</Link>
+                    <Link href={`/d/${day}`} className="hover:underline text-muted-foreground z-10 relative" onClick={(e) => e.stopPropagation()}>{logTitle ?? day}</Link>
                   </AttachmentDescription>
                 </AttachmentContent>
               </>

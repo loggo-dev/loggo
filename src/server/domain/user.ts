@@ -42,3 +42,19 @@ export async function updateUser(db: AppDb, id: string, values: { name?: string;
 export async function activeUserById(db: AppDb, id: string) {
   return (await db.select().from(users).where(and(eq(users.id, id), isNull(users.disabledAt))).limit(1))[0] ?? null;
 }
+
+export async function deleteUser(db: AppDb, storage: import("./storage").Storage | null, id: string) {
+  const current = (await db.select().from(users).where(eq(users.id, id)).limit(1))[0];
+  if (!current) throw new NotFoundError("User not found");
+
+  const { deleteWorkspace } = await import("./workspace");
+  const { workspaces } = await import("../db/schema");
+  
+  const userWorkspaces = await db.select({ id: workspaces.id }).from(workspaces).where(eq(workspaces.createdBy, id));
+  
+  for (const row of userWorkspaces) {
+    await deleteWorkspace(db, storage, row.id);
+  }
+  
+  await db.delete(users).where(eq(users.id, id));
+}

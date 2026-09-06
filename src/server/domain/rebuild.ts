@@ -31,6 +31,7 @@ export async function rebuildFromStorage(db: AppDb, storage: Storage) {
         color: isWorkspaceColor(frontmatter.workspace_color) ? frontmatter.workspace_color : DEFAULT_WORKSPACE_COLOR,
         icon: isWorkspaceIcon(frontmatter.workspace_icon) ? frontmatter.workspace_icon : DEFAULT_WORKSPACE_ICON,
         kind: frontmatter.workspace.startsWith("personal-") ? "personal" : "shared",
+        templateMode: "today_only",
         createdBy: author.id,
         createdAt: frontmatter.created,
       };

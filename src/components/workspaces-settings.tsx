@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MoreHorizontalIcon, PencilIcon, PlusIcon, UsersIcon } from "lucide-react";
+import { MoreHorizontalIcon, PencilIcon, PlusIcon, UsersIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api, type AdminWorkspaceSummary } from "@/lib/api-client";
@@ -12,7 +12,8 @@ import { useWorkspace } from "@/components/workspace-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export function WorkspacesSettings() {
@@ -23,6 +24,18 @@ export function WorkspacesSettings() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<AdminWorkspaceSummary | null>(null);
   const [membersWorkspace, setMembersWorkspace] = useState<AdminWorkspaceSummary | null>(null);
+  const [deletingWorkspace, setDeletingWorkspace] = useState<AdminWorkspaceSummary | null>(null);
+
+  const removeWorkspace = useMutation({
+    mutationFn: (id: string) => api.deleteWorkspace(id),
+    onSuccess: () => {
+      setDeletingWorkspace(null);
+      void queryClient.invalidateQueries({ queryKey: ["admin-workspaces"] });
+      void queryClient.invalidateQueries({ queryKey: ["me"] });
+      toast.success("Workspace deleted");
+    },
+    onError: (error) => toast.error(error.message),
+  });
 
   const create = useMutation({
     mutationFn: (values: WorkspaceFormValues) => api.createWorkspace(values),
@@ -86,6 +99,12 @@ export function WorkspacesSettings() {
                       <DropdownMenuItem onClick={() => setEditingWorkspace(entry)}><PencilIcon />Edit</DropdownMenuItem>
                       <DropdownMenuItem disabled={entry.workspace.kind === "personal"} onClick={() => setMembersWorkspace(entry)}><UsersIcon />Manage members</DropdownMenuItem>
                     </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeletingWorkspace(entry)}>
+                        <TrashIcon />Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -101,5 +120,31 @@ export function WorkspacesSettings() {
     {createOpen ? <WorkspaceFormDialog open onOpenChange={setCreateOpen} workspace={null} users={users.data?.users ?? []} currentUserId={currentUser.id} workspaceCount={workspaces.data?.workspaces.length ?? 0} pending={create.isPending} onSubmit={(values) => create.mutate(values)} /> : null}
     {editingWorkspace ? <WorkspaceFormDialog open onOpenChange={(open) => { if (!open) setEditingWorkspace(null); }} workspace={editingWorkspace} users={users.data?.users ?? []} currentUserId={currentUser.id} workspaceCount={workspaces.data?.workspaces.length ?? 0} pending={update.isPending} onSubmit={(values) => update.mutate({ workspaceId: editingWorkspace.workspace.id, values })} /> : null}
     {membersWorkspace ? <WorkspaceMembersDialog open onOpenChange={(open) => { if (!open) setMembersWorkspace(null); }} workspace={membersWorkspace} users={users.data?.users ?? []} pending={members.isPending} onSubmit={(memberIds) => members.mutate({ workspaceId: membersWorkspace.workspace.id, memberIds })} /> : null}
+
+    <AlertDialog open={!!deletingWorkspace} onOpenChange={(open) => { if (!open) setDeletingWorkspace(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Workspace?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete the workspace &quot;{deletingWorkspace?.workspace.name}&quot;? This will permanently delete the workspace, all its logs, and associated files. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction 
+            variant="destructive" 
+            disabled={removeWorkspace.isPending}
+            onClick={(e) => {
+              e.preventDefault();
+              if (deletingWorkspace) {
+                removeWorkspace.mutate(deletingWorkspace.workspace.id);
+              }
+            }}
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </>;
 }

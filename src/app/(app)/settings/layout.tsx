@@ -1,6 +1,6 @@
 "use client";
 
-import { DatabaseIcon, MoonStarIcon, UserRoundIcon, UsersIcon, WarehouseIcon } from "lucide-react";
+import { DatabaseIcon, MoonStarIcon, UserRoundIcon, UsersIcon, WarehouseIcon, LayoutTemplateIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useWorkspace } from "@/components/workspace-provider";
@@ -13,6 +13,9 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
     { label: "Basic", links: [
       { href: "/settings", label: "Profile", icon: UserRoundIcon, exact: true },
       { href: "/settings/appearance", label: "Appearance", icon: MoonStarIcon },
+    ] },
+    { label: "Workspace", links: [
+      { href: "/settings/templates", label: "Daily Templates", icon: LayoutTemplateIcon },
     ] },
     ...(user.role === "admin" ? [{ label: "Admin", links: [
       { href: "/settings/users", label: "Users", icon: UsersIcon },

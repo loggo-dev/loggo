@@ -4,8 +4,8 @@ import { z } from "zod";
 import { USER_COLORS } from "@/lib/user-colors";
 import { WORKSPACE_COLORS, WORKSPACE_ICONS } from "@/lib/workspace-appearance";
 import { getSettings, setSettings } from "../domain/instance-settings";
-import { createUser, listUsers, updateUser } from "../domain/user";
-import { createPersonalWorkspace, createWorkspace, setWorkspaceMembers, updateWorkspace } from "../domain/workspace";
+import { createUser, listUsers, updateUser, deleteUser } from "../domain/user";
+import { createPersonalWorkspace, createWorkspace, setWorkspaceMembers, updateWorkspace, deleteWorkspace } from "../domain/workspace";
 import { workspaces, workspaceMembers } from "../db/schema";
 import { eq } from "drizzle-orm";
 import type { AppEnv } from "./types";
@@ -19,6 +19,10 @@ export const adminRoutes = new Hono<AppEnv>()
   })
   .patch("/users/:userId", zValidator("json", z.object({ name: z.string().min(1).max(80).optional(), password: z.string().min(8).max(200).optional(), role: z.enum(["admin", "user"]).optional(), color: z.enum(USER_COLORS).optional(), disabled: z.boolean().optional() })), async (context) => {
     await updateUser(context.get("db"), context.req.param("userId"), context.req.valid("json"));
+    return context.json({ ok: true });
+  })
+  .delete("/users/:userId", async (context) => {
+    await deleteUser(context.get("db"), context.get("storage"), context.req.param("userId"));
     return context.json({ ok: true });
   })
   .get("/workspaces", async (context) => {
@@ -40,6 +44,10 @@ export const adminRoutes = new Hono<AppEnv>()
   })
   .put("/workspaces/:workspaceId/members", zValidator("json", z.object({ userIds: z.array(z.string()) })), async (context) => {
     await setWorkspaceMembers(context.get("db"), context.req.param("workspaceId"), context.req.valid("json").userIds);
+    return context.json({ ok: true });
+  })
+  .delete("/workspaces/:workspaceId", async (context) => {
+    await deleteWorkspace(context.get("db"), context.get("storage"), context.req.param("workspaceId"));
     return context.json({ ok: true });
   })
   .get("/instance", async (context) => context.json({ settings: await getSettings(context.get("db")) }))

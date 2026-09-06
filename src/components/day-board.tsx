@@ -110,6 +110,16 @@ export function DayBoard({ date, autoNew = false }: { date: string; autoNew?: bo
   const tasks = useQuery({ queryKey: ["tasks", workspace.id, date], queryFn: () => api.tasks(workspace.id, { day: date }) });
   const tasksByLog = Object.groupBy(tasks.data?.tasks ?? [], (task) => task.logId);
 
+  const applyTemplates = useMutation({
+    mutationFn: () => api.applyTemplates(workspace.id, date),
+    onSuccess: (res) => { if (res.applied) void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id, date] }); }
+  });
+
+  useEffect(() => {
+    applyTemplates.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, workspace.id]);
+
   const invalidateComposerQueries = () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["tags", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["tasks", workspace.id] }); };
   const resetComposer = () => { setExpanded(false); setDraftId(null); ensuringRef.current = null; };
   const toggleTask = useMutation({ mutationFn: ({ id, done }: { id: string; done: boolean }) => api.toggleTask(workspace.id, id, done), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["tasks", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); }, onError: (error) => toast.error(error.message) });

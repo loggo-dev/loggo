@@ -10,6 +10,7 @@ import { searchRoutes } from "./routes/search";
 import { setupRoutes } from "./routes/setup";
 import { tagRoutes } from "./routes/tags";
 import { taskRoutes } from "./routes/tasks";
+import { templateRoutes } from "./routes/templates";
 import type { AppConfig, AppEnv } from "./routes/types";
 import { workspaceRoutes } from "./routes/workspaces";
 
@@ -25,6 +26,7 @@ export function createApp(config: AppConfig) {
     .use("/workspaces/:workspaceId/*", requireWorkspace)
     .use("/workspaces/:workspaceId/*", rejectReadOnly(config.readOnly))
     .use("/workspaces/:workspaceId/logs/:logId/move/:targetWorkspaceId", requireTargetWorkspace)
+    .route("/workspaces/:workspaceId/templates", templateRoutes)
     .route("/workspaces/:workspaceId/logs", logRoutes)
     .route("/workspaces/:workspaceId/tags", tagRoutes)
     .route("/workspaces/:workspaceId/tasks", taskRoutes)

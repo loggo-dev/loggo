@@ -1,3 +1,11 @@
+CREATE TABLE `applied_templates` (
+	`workspace_id` text NOT NULL,
+	`day` text NOT NULL,
+	`applied_at` text DEFAULT (current_timestamp) NOT NULL,
+	PRIMARY KEY(`workspace_id`, `day`),
+	FOREIGN KEY (`workspace_id`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
 CREATE TABLE `attachments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`log_id` text NOT NULL,
@@ -36,8 +44,8 @@ CREATE TABLE `logs` (
 	`width` integer,
 	`height` integer,
 	`z_index` integer DEFAULT 0 NOT NULL,
-	FOREIGN KEY (`workspace_id`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`author_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`workspace_id`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`author_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE INDEX `logs_workspace_day_idx` ON `logs` (`workspace_id`,`day`);--> statement-breakpoint
@@ -78,6 +86,18 @@ CREATE TABLE `tasks` (
 );
 --> statement-breakpoint
 CREATE INDEX `tasks_workspace_due_idx` ON `tasks` (`workspace_id`,`due_date`);--> statement-breakpoint
+CREATE TABLE `templates` (
+	`id` text PRIMARY KEY NOT NULL,
+	`workspace_id` text NOT NULL,
+	`title` text,
+	`body` text NOT NULL,
+	`enabled` integer DEFAULT true NOT NULL,
+	`created_at` text DEFAULT (current_timestamp) NOT NULL,
+	`mirror_dirty` integer DEFAULT false NOT NULL,
+	FOREIGN KEY (`workspace_id`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `templates_workspace_idx` ON `templates` (`workspace_id`);--> statement-breakpoint
 CREATE TABLE `users` (
 	`id` text PRIMARY KEY NOT NULL,
 	`email` text NOT NULL,
@@ -108,13 +128,13 @@ CREATE TABLE `workspaces` (
 	`color` text DEFAULT 'bg-blue-500' NOT NULL,
 	`icon` text DEFAULT 'gallery' NOT NULL,
 	`kind` text NOT NULL,
+	`template_mode` text DEFAULT 'today_only' NOT NULL,
 	`created_by` text NOT NULL,
 	`created_at` text DEFAULT (current_timestamp) NOT NULL,
-	FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `workspaces_slug_idx` ON `workspaces` (`slug`);
---> statement-breakpoint
+CREATE UNIQUE INDEX `workspaces_slug_idx` ON `workspaces` (`slug`);--> statement-breakpoint
 CREATE VIRTUAL TABLE `logs_fts` USING fts5(
 	`log_id` UNINDEXED,
 	`workspace_id` UNINDEXED,
