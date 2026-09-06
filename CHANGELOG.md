@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/loggo-dev/loggo/compare/v1.0.0...v1.1.0) (2026-09-06)
+
+
+### Features
+
+* update release workflow to build for Cloudflare Workers and apply D1 migrations ([68cb4dd](https://github.com/loggo-dev/loggo/commit/68cb4dd6456d1c7e0996b50423907f850e56b7b9))
+
 ## 1.0.0 (2026-09-06)
 
 
