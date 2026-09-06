@@ -4,7 +4,7 @@ import { autocompletion, type CompletionContext } from "@codemirror/autocomplete
 import type { Extension } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { insertNewlineContinueMarkup } from "@codemirror/lang-markdown";
-import { PaperclipIcon, LoaderCircleIcon } from "lucide-react";
+import { PaperclipIcon, LoaderCircleIcon, VideoIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import type { EditorCommand } from "@/components/editor/commands/editorCommands";
@@ -39,20 +39,39 @@ export function LogEditor({ initialTitle = "", initialBody = "", tags = [], savi
 
   const hasPasteHandler = !!onPasteFile;
 
-  // Extends the default slash-command registry with an app-specific
-  // "Attachment" command instead of the menu component knowing about uploads.
+  // Extends the default slash-command registry with app-specific commands
+  // ("Attachment", "YouTube") instead of the menu component knowing about
+  // uploads or embeds.
   const commands = useMemo<EditorCommand[]>(() => {
-    if (!hasPasteHandler) return [];
-    return [{
-      id: "attachment",
-      label: "Attachment",
-      keywords: ["image", "upload", "file", "pdf"],
-      icon: <PaperclipIcon className="size-4" />,
+    const list: EditorCommand[] = [{
+      id: "youtube",
+      label: "YouTube",
+      keywords: ["video", "embed", "yt"],
+      icon: <VideoIcon className="size-4" />,
       execute: (view, range) => {
-        view.dispatch({ changes: { from: range.from, to: range.to, insert: "" } });
-        requestAttachment();
+        // Select the placeholder so the very next thing the user types or
+        // pastes (typically a copied YouTube URL) replaces it outright.
+        const placeholder = "youtube-url";
+        view.dispatch({
+          changes: { from: range.from, to: range.to, insert: placeholder },
+          selection: { anchor: range.from, head: range.from + placeholder.length },
+        });
+        view.focus();
       },
     }];
+    if (hasPasteHandler) {
+      list.push({
+        id: "attachment",
+        label: "Attachment",
+        keywords: ["image", "upload", "file", "pdf"],
+        icon: <PaperclipIcon className="size-4" />,
+        execute: (view, range) => {
+          view.dispatch({ changes: { from: range.from, to: range.to, insert: "" } });
+          requestAttachment();
+        },
+      });
+    }
+    return list;
   }, [hasPasteHandler, requestAttachment]);
 
   // attachFile is read through a ref (not a hook dependency) purely so a

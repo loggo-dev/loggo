@@ -6,7 +6,9 @@ import { EditorView } from "@codemirror/view";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { codeHighlighting, languages } from "@/components/editor/highlighting";
+import { useCanvasInteraction } from "@/components/canvas-provider";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const languageCompartment = new Compartment();
 
@@ -43,6 +45,14 @@ export function CodeBlock({ code, language, highlighted = true, clampHeight }: {
     return () => instance.destroy();
   }, [code, language, highlighted]);
   const copy = async () => { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1500); };
+  // A live CodeMirror instance (one per highlighted snippet) is real DOM/paint
+  // weight - with several on a day board at once, repainting all of them
+  // while the canvas is being scaled is what makes panning/zooming feel
+  // jerky. Rather than tear the editor down (losing its mounted state) while
+  // interacting, just stop painting it (`invisible`, so it keeps its layout
+  // box - no reflow) and show a plain unhighlighted placeholder in its place.
+  const { isInteracting } = useCanvasInteraction();
+  const showPlaceholder = highlighted && isInteracting;
   return <div className="group relative rounded-lg border bg-muted/40 p-3">
     <div className="mb-1 flex items-center justify-between gap-2">
       <span className="font-mono text-[0.7rem] uppercase tracking-wide text-muted-foreground">{language || "text"}</span>
@@ -50,8 +60,13 @@ export function CodeBlock({ code, language, highlighted = true, clampHeight }: {
         {copied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
       </Button>
     </div>
-    {highlighted
-      ? <div ref={parent} className={clampHeight ? "max-h-64 overflow-hidden" : "overflow-x-auto"} />
-      : <pre className={`overflow-x-auto whitespace-pre-wrap break-words font-mono text-[0.85rem] leading-6 ${clampHeight ? "max-h-64 overflow-hidden" : ""}`}><code>{code}</code></pre>}
+    <div className="relative">
+      {highlighted
+        ? <div ref={parent} className={cn(clampHeight ? "max-h-64 overflow-hidden" : "overflow-x-auto", showPlaceholder && "invisible")} />
+        : <pre className={`overflow-x-auto whitespace-pre-wrap break-words font-mono text-[0.85rem] leading-6 ${clampHeight ? "max-h-64 overflow-hidden" : ""}`}><code>{code}</code></pre>}
+      {showPlaceholder ? (
+        <pre className={`absolute inset-0 overflow-hidden whitespace-pre-wrap break-words font-mono text-[0.85rem] leading-6 text-muted-foreground ${clampHeight ? "max-h-64" : ""}`}>{code}</pre>
+      ) : null}
+    </div>
   </div>;
 }

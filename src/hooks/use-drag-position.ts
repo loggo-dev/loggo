@@ -33,10 +33,14 @@ export function useDragPosition({ x, y, onCommit, onClick }: { x: number; y: num
     moved.current = false;
   };
 
-  const { zoom } = useCanvas();
+  // Read via ref, not reactively - this hook runs in every draggable card on
+  // the board, and subscribing to `zoom` directly would re-render all of
+  // them on every tick of the canvas being panned or zoomed elsewhere.
+  const { zoomRef } = useCanvas();
 
   const onPointerMove = (event: PointerEvent) => {
     if (!startMouse.current || !startCard.current) return;
+    const zoom = zoomRef.current;
     const dx = (event.clientX - startMouse.current.x) / zoom;
     const dy = (event.clientY - startMouse.current.y) / zoom;
     if (!moved.current && Math.hypot(dx * zoom, dy * zoom) < DRAG_THRESHOLD) return;
@@ -75,7 +79,7 @@ export function useDragPosition({ x, y, onCommit, onClick }: { x: number; y: num
   const currentDx = targetPos ? targetPos.x - x : 0;
   const currentDy = targetPos ? targetPos.y - y : 0;
 
-  const style: CSSProperties | undefined = targetPos ? { transform: `translate(${currentDx}px, ${currentDy}px)`, zIndex: 30, cursor: isDraggingActive ? "grabbing" : undefined } : undefined;
+  const style: CSSProperties | undefined = targetPos ? { transform: `translate3d(${currentDx}px, ${currentDy}px, 0)`, zIndex: 30, cursor: isDraggingActive ? "grabbing" : undefined, willChange: "transform" } : undefined;
 
   return { isDragging: targetPos !== null, style, handlers: { onPointerDown, onPointerMove, onPointerUp: endDrag, onPointerCancel: endDrag, onClick: handleClick } };
 }

@@ -25,6 +25,7 @@ function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
 
 function DialogOverlay({
   className,
+  onClick,
   ...props
 }: DialogPrimitive.Backdrop.Props) {
   return (
@@ -34,6 +35,14 @@ function DialogOverlay({
         "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
+      // The backdrop is rendered through a portal, but React still bubbles
+      // its synthetic events up the component tree (not the DOM tree) - so a
+      // dismiss-click here would otherwise also reach whatever clickable
+      // ancestor rendered the Dialog (e.g. a card that opens on click).
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick?.(event);
+      }}
       {...props}
     />
   )
@@ -43,6 +52,7 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  onClick,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
@@ -56,6 +66,13 @@ function DialogContent({
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
+        // Same reasoning as DialogOverlay: don't let a click anywhere in the
+        // dialog's content bubble (via the React tree) to a clickable
+        // ancestor that rendered the Dialog.
+        onClick={(event) => {
+          event.stopPropagation();
+          onClick?.(event);
+        }}
         {...props}
       >
         {children}

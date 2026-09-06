@@ -19,9 +19,11 @@ export function useResize({ width, height, onCommit }: { width: number | null | 
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
-  const { zoom } = useCanvas();
+  // Read via ref, not reactively - see the matching comment in use-drag-position.ts.
+  const { zoomRef } = useCanvas();
   const onPointerMove = (event: PointerEvent) => {
     if (!startMouse.current || !startSize.current) return;
+    const zoom = zoomRef.current;
     const dx = (event.clientX - startMouse.current.x) / zoom;
     const dy = (event.clientY - startMouse.current.y) / zoom;
     setTargetSize({ w: Math.round(Math.max(200, startSize.current.w + dx)), h: Math.round(Math.max(100, startSize.current.h + dy)) });

@@ -8,8 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Attachment, AttachmentContent, AttachmentGroup, AttachmentMedia, AttachmentTitle, AttachmentDescription, AttachmentActions, AttachmentAction } from "@/components/ui/attachment";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
-import { FileIcon, DownloadIcon, ExternalLinkIcon, MoreVerticalIcon } from "lucide-react";
+import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { useCanvasInteraction } from "@/components/canvas-provider";
+import { FileIcon, DownloadIcon, ExternalLinkIcon, MoreVerticalIcon, VideoIcon, XIcon } from "lucide-react";
 import type { TaskSummary } from "@/lib/api-client";
 import { cn, humanizeDate } from "@/lib/utils";
 
@@ -49,7 +50,22 @@ function stripTrailingDate(nodes: ReactNode[], badgeNode?: ReactNode): { strippe
 
 const ATTACHMENT_PATTERN = /(?:!\[([^\]]*)\]|\[([^\]]*)\])\(<?(\.\/_files\/[^)>\s]+)>?\)/g;
 
+const YOUTUBE_PATTERN = /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:\S*&)?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+
+function youtubeVideoId(href: string) {
+  return href.match(YOUTUBE_PATTERN)?.[1] ?? null;
+}
+
 export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, highlightCode = true, clampCode = false, compact = false }: { body: string; workspaceId?: string; tasks?: TaskSummary[]; onToggleTask?: (taskId: string, done: boolean) => void; highlightCode?: boolean; clampCode?: boolean; compact?: boolean }) {
+  // Chrome blanks a cross-origin iframe (YouTube embeds) while an ancestor's
+  // CSS transform is actively changing, which happens continuously while
+  // panning/zooming the day board's canvas - swap in a static placeholder
+  // for the duration so it doesn't flash black. `useCanvasInteraction()` is
+  // safe to call outside a canvas (e.g. the Logs grid) - `isInteracting` is
+  // just always false there. It's a separate hook from `useCanvas()`'s
+  // pan/zoom values on purpose, so a card's markdown doesn't re-render on
+  // every tick of an unrelated pan/zoom gesture (see canvas-provider.tsx).
+  const { isInteracting } = useCanvasInteraction();
   const matches = [...body.matchAll(ATTACHMENT_PATTERN)];
   const strippedBody = body.replace(ATTACHMENT_PATTERN, "").trim();
 
@@ -58,7 +74,30 @@ export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, highli
       <div className="flex-1">
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
           img: ({ src, alt }) => <img src={src} alt={alt ?? "Image"} className="my-3 max-h-96 rounded-lg border object-contain" />,
-          a: ({ href, children, title }) => <a href={href} title={title} target={href?.startsWith("http") ? "_blank" : undefined} rel={href?.startsWith("http") ? "noreferrer" : undefined}>{children}</a>,
+          a: ({ href, children, title }) => {
+            const videoId = typeof href === "string" ? youtubeVideoId(href) : null;
+            if (videoId) return (
+              <div className="relative my-3 aspect-video w-full overflow-hidden rounded-lg border" onClick={(event) => event.stopPropagation()}>
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                  title="YouTube video"
+                  className="size-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  loading="lazy"
+                />
+                {/* Kept mounted underneath rather than swapped out, so panning
+                    the canvas never resets playback - this cover just hides
+                    the momentary black flash. */}
+                {isInteracting ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted text-muted-foreground">
+                    <VideoIcon className="size-8" />
+                  </div>
+                ) : null}
+              </div>
+            );
+            return <a href={href} title={title} target={href?.startsWith("http") ? "_blank" : undefined} rel={href?.startsWith("http") ? "noreferrer" : undefined}>{children}</a>;
+          },
           pre: ({ children }) => {
             const code = isValidElement<{ className?: string; children?: unknown }>(children) ? children : null;
             const language = code?.props.className?.match(/language-(\S+)/)?.[1];
@@ -156,10 +195,13 @@ export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, highli
                   <DialogTrigger render={<button type="button" className="flex items-center gap-2 flex-1 cursor-pointer hover:opacity-80 transition-opacity min-w-0" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} />}>
                     {innerContent}
                   </DialogTrigger>
-                  <DialogContent className="w-fit h-fit max-w-[90vw] sm:max-w-[90vw] max-h-[90vh] border-none bg-transparent p-0 shadow-none flex items-center justify-center">
+                  <DialogContent showCloseButton={false} className="w-fit h-fit max-w-[90vw] sm:max-w-[90vw] max-h-[90vh] border-none bg-transparent p-0 shadow-none flex items-center justify-center">
                     <DialogTitle className="sr-only">{text}</DialogTitle>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={resolved} alt={text} className="block max-w-[90vw] max-h-[90vh] w-auto h-auto object-contain" />
+                    <img src={resolved} alt={text} className="block max-w-[90vw] max-h-[90vh] w-auto h-auto rounded-lg object-contain" />
+                    <DialogClose className="absolute top-3 right-3 z-10 flex size-8 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70" aria-label="Close">
+                      <XIcon className="size-4" />
+                    </DialogClose>
                   </DialogContent>
                 </Dialog>
               ) : (
