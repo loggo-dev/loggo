@@ -5,8 +5,6 @@ WORKDIR /app
 RUN corepack enable
 # better-sqlite3 is a native addon - these are needed to build it for musl (alpine).
 RUN apk add --no-cache python3 make g++
-# puppeteer is a devDependency with no runtime use here - skip its Chromium download.
-ENV PUPPETEER_SKIP_DOWNLOAD=true
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 

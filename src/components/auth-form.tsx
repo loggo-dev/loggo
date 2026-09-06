@@ -21,9 +21,12 @@ export function AuthForm({ mode }: { mode: "login" | "setup" }) {
   useEffect(() => { if (status.data?.needed && mode === "login") router.replace("/setup"); if (status.data && !status.data.needed && mode === "setup") router.replace("/login"); }, [status.data, mode, router]);
   const mutation = useMutation({ mutationFn: () => mode === "setup" ? api.setup({ name, email, password }) : api.login({ email, password }), onSuccess: () => router.replace(`/d/${new Date().toISOString().slice(0, 10)}`) });
   const submit = (event: FormEvent) => { event.preventDefault(); mutation.mutate(); };
-  return <main className="flex min-h-svh items-center justify-center p-5"><div className="flex w-full max-w-sm flex-col gap-6">
-    <div className="flex items-center justify-center gap-2 text-lg font-semibold"><Image src="/logo.png" alt="" width={32} height={32} className="size-8 rounded-lg" priority />Loggo</div>
-    <Card><CardHeader><CardTitle>{mode === "setup" ? "Set up Loggo" : "Welcome back"}</CardTitle><CardDescription>{mode === "setup" ? "Create the first admin account. Your Personal workspace is created with it." : "Sign in to your workspace."}</CardDescription></CardHeader>
+  return <main className="flex min-h-svh items-center justify-center bg-background p-5"><div className="flex w-full max-w-sm flex-col items-center gap-8">
+    <div className="flex flex-col items-center gap-3">
+      <Image src="/logo.png" alt="" width={56} height={56} className="size-14 rounded-2xl ring-1 ring-border" priority />
+      <span className="font-heading text-2xl font-semibold tracking-tight">Loggo</span>
+    </div>
+    <Card className="w-full shadow-sm"><CardHeader className="text-center"><CardTitle className="text-xl">{mode === "setup" ? "Set up Loggo" : "Welcome back"}</CardTitle><CardDescription>{mode === "setup" ? "Create the first admin account. Your Personal workspace is created with it." : "Sign in to your workspace."}</CardDescription></CardHeader>
       <CardContent><form onSubmit={submit}><FieldGroup>
         {mode === "setup" ? <Field><FieldLabel htmlFor="name">Name</FieldLabel><Input id="name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required /></Field> : null}
         <Field><FieldLabel htmlFor="email">Email</FieldLabel><Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required /></Field>
