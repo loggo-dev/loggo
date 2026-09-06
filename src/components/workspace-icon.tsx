@@ -51,9 +51,12 @@ const iconByName = Object.fromEntries(workspaceIconOptions.map((option) => [opti
 
 export function WorkspaceIcon({ icon, color, className }: { icon?: WorkspaceIconName; color: WorkspaceColor; className?: string }) {
   const Icon = iconByName[icon ?? DEFAULT_WORKSPACE_ICON] ?? GalleryVerticalEndIcon;
-  // Inline style, not just a Tailwind class: dropdown menu items paint every
-  // descendant with the accent-foreground color on hover/focus
-  // (`**:text-accent-foreground` in dropdown-menu.tsx), which is dark in
-  // light mode - only a same-element inline style reliably wins over that.
-  return <div data-slot="workspace-icon" className={cn("flex shrink-0 items-center justify-center rounded-lg", color, className)} style={{ color: "#fff" }}><Icon /></div>;
+  // Dropdown menu items paint every descendant with the accent-foreground
+  // color on hover/focus (`**:text-accent-foreground` in dropdown-menu.tsx),
+  // which sets `color` directly on this svg - beating any `color` set on an
+  // ancestor (inherited color always loses to a rule targeting the element
+  // itself) and dark in light mode. lucide's `color` prop renders a literal
+  // `stroke="#fff"` instead of `stroke="currentColor"`, decoupling the icon
+  // from the `color` property entirely so that override can't reach it.
+  return <div data-slot="workspace-icon" className={cn("flex shrink-0 items-center justify-center rounded-lg", color, className)}><Icon color="#fff" /></div>;
 }
