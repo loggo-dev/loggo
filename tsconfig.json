@@ -18,7 +18,7 @@
         "name": "next"
       }
     ],
-    "types": ["node"],
+    "types": ["node", "@cloudflare/workers-types"],
     "paths": {
       "@/*": ["./src/*"]
     }
@@ -31,5 +31,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "src/server/adapters/d1-db.ts", "src/server/adapters/r2-storage.ts"]
+  "exclude": ["node_modules"]
 }

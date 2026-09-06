@@ -4,6 +4,7 @@ import { adminRoutes } from "./routes/admin";
 import { attachmentRoutes } from "./routes/attachments";
 import { authRoutes } from "./routes/auth";
 import { logRoutes } from "./routes/logs";
+import { internalRoutes } from "./routes/internal";
 import { injectDependencies, rejectReadOnly, requireAdmin, requireAuth, requireTargetWorkspace, requireWorkspace } from "./routes/middleware";
 import { profileRoutes } from "./routes/profile";
 import { searchRoutes } from "./routes/search";
@@ -20,7 +21,9 @@ export function createApp(config: AppConfig) {
     .use("*", injectDependencies(config))
     .route("/setup", setupRoutes)
     .route("/auth", authRoutes)
+    .route("/internal", internalRoutes(config))
     .use("*", requireAuth)
+    .use("/profile", rejectReadOnly(config.readOnly))
     .route("/profile", profileRoutes)
     .route("/workspaces", workspaceRoutes)
     .use("/workspaces/:workspaceId/*", requireWorkspace)

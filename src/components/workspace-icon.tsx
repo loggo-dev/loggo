@@ -51,5 +51,9 @@ const iconByName = Object.fromEntries(workspaceIconOptions.map((option) => [opti
 
 export function WorkspaceIcon({ icon, color, className }: { icon?: WorkspaceIconName; color: WorkspaceColor; className?: string }) {
   const Icon = iconByName[icon ?? DEFAULT_WORKSPACE_ICON] ?? GalleryVerticalEndIcon;
-  return <div data-slot="workspace-icon" className={cn("flex shrink-0 items-center justify-center rounded-lg text-white [&_svg]:text-white!", color, className)}><Icon /></div>;
+  // Inline style, not just a Tailwind class: dropdown menu items paint every
+  // descendant with the accent-foreground color on hover/focus
+  // (`**:text-accent-foreground` in dropdown-menu.tsx), which is dark in
+  // light mode - only a same-element inline style reliably wins over that.
+  return <div data-slot="workspace-icon" className={cn("flex shrink-0 items-center justify-center rounded-lg", color, className)} style={{ color: "#fff" }}><Icon /></div>;
 }

@@ -19,4 +19,7 @@ export type AppConfig = {
   readOnly: boolean;
   maxAttachmentSize: number;
   allowedFileTypes: string[];
+  // Guards POST /api/internal/reseed-demo (see routes/internal.ts). Left
+  // unset on self-hosted installs, which 404s the route entirely.
+  reseedSecret?: string;
 };

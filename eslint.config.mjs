@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     ".claude/**",
     "tmp-scaffold/**",
     ".open-next/**",
+    // Imports .open-next/worker.js, a build artifact - see its own comment.
+    "cloudflare/**",
   ]),
 ]);
 

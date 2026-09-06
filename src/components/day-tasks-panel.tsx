@@ -33,7 +33,7 @@ function loadPosition(key: string) {
 // aggregates checkboxes from every Log on the day rather than being one
 // itself, so its on-screen position is a per-viewer UI preference (kept in
 // localStorage) rather than data worth persisting server-side.
-export function TasksCard({ date }: { date: string }) {
+export function TasksCard({ date, floating = true }: { date: string; floating?: boolean }) {
   const { workspace } = useWorkspace();
   const queryClient = useQueryClient();
   const key = positionKey(workspace.id, date);
@@ -56,7 +56,9 @@ export function TasksCard({ date }: { date: string }) {
   const open = items.filter((task) => !task.done);
   const done = items.filter((task) => task.done);
 
-  return <Card style={{ position: "absolute", left: pos.x, top: pos.y, ...drag.style }} className={`w-72 cursor-grab touch-none select-none ${drag.isDragging ? "shadow-lg" : ""}`} {...drag.handlers}>
+  const floatingProps = floating ? { style: { position: "absolute" as const, left: pos.x, top: pos.y, ...drag.style }, className: `w-72 cursor-grab touch-none select-none ${drag.isDragging ? "shadow-lg" : ""}`, ...drag.handlers } : { className: "w-full" };
+
+  return <Card {...floatingProps}>
     <CardHeader>
       <CardTitle className="text-sm">Today&apos;s tasks</CardTitle>
       <CardAction><Badge variant="secondary">{open.length}</Badge></CardAction>

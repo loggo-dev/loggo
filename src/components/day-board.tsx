@@ -244,6 +244,7 @@ export function DayBoard({ date, autoNew = false }: { date: string; autoNew?: bo
         {layout === "masonry" ? (
           <div className="h-full w-full max-w-[92rem] mx-auto overflow-y-auto px-4 pt-20 md:px-8 md:pt-24 pb-32">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1 auto-rows-min items-start">
+              {showTasks ? <div key="tasks"><TasksCard date={date} floating={false} /></div> : null}
               {logs.isLoading ? <DayBoardSkeleton /> : (
                 logs.data?.logs.slice().reverse().map((log) => {
                   let colSpan = "col-span-1";

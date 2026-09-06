@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
-    "build:workers": "opennextjs-cloudflare build",
+    "build:workers": "NEXT_PUBLIC_DEMO_MODE=true opennextjs-cloudflare build",
+    "deploy:workers": "npm run build:workers && wrangler deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",

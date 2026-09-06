@@ -179,3 +179,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Documentation
+
+The official documentation site lives in the `docs/` repository (`docs.loggo.dev`). 
+
+Whenever you introduce a new feature, change the behavior of an existing feature, or alter the HTTP API, you **MUST** update the documentation site to reflect these changes. The documentation is the source of truth for users and must never fall out of sync with the application logic. 
+
+Always cross-check `docs/` for relevant articles (especially inside `src/content/docs/features` and `src/content/api`) and update them appropriately as part of your task.

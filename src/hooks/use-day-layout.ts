@@ -9,7 +9,7 @@ export function useDayLayout() {
         return saved;
       }
     }
-    return "canvas";
+    return "masonry";
   });
 
   const saveLayout = (val: "canvas" | "masonry") => {
