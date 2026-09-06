@@ -4,7 +4,7 @@
 /data/
 .open-next/
 .wrangler/
-cloudflare-env.d.ts
+/cloudflare-env.d.ts
 
 # dependencies
 /node_modules
