@@ -74,6 +74,36 @@ export async function setLogSize(db: AppDb, id: string, workspaceId: string, wid
   await db.update(logs).set({ width, height }).where(eq(logs.id, id));
 }
 
+// Stacking order is board-arrangement state, same as position - it skips the
+// mirror writer and `updatedAt` so bringing a card to front never triggers a
+// markdown rewrite.
+export async function setLogZIndex(db: AppDb, id: string, workspaceId: string, zIndex: number) {
+  const current = (await db.select({ id: logs.id }).from(logs).where(activeLogWhere(eq(logs.id, id), eq(logs.workspaceId, workspaceId))).limit(1))[0];
+  if (!current) throw new NotFoundError("Log not found");
+  await db.update(logs).set({ zIndex }).where(eq(logs.id, id));
+}
+
+export async function duplicateLog(db: AppDb, storage: Storage | null, id: string, workspaceId: string, authorId: string) {
+  const current = (await db.select().from(logs).where(activeLogWhere(eq(logs.id, id), eq(logs.workspaceId, workspaceId))).limit(1))[0];
+  if (!current) throw new NotFoundError("Log not found");
+  const [{ maxZ } = { maxZ: 0 }] = await db.select({ maxZ: sql<number>`max(${logs.zIndex})` }).from(logs).where(activeLogWhere(eq(logs.workspaceId, workspaceId), eq(logs.day, current.day)));
+  const now = new Date().toISOString();
+  const log = {
+    id: ulid(), workspaceId, authorId, day: current.day, title: current.title, body: current.body,
+    createdAt: now, updatedAt: now, deletedAt: null, mirrorDirty: false,
+    posX: current.posX != null ? current.posX + 24 : null,
+    posY: current.posY != null ? current.posY + 24 : null,
+    width: current.width, height: current.height,
+    zIndex: (maxZ ?? 0) + 1,
+  };
+  await db.atomic(async (tx) => {
+    await tx.insert(logs).values(log);
+    await syncDerivedData(tx as unknown as AppDb, log);
+  });
+  if (storage) await writeLogMirror(db, storage, log.id);
+  return getLog(db, log.id);
+}
+
 export async function deleteLog(db: AppDb, storage: Storage | null, id: string, workspaceId?: string) {
   const current = (await db.select().from(logs).where(activeLogWhere(eq(logs.id, id), workspaceId ? eq(logs.workspaceId, workspaceId) : undefined)).limit(1))[0];
   if (!current) throw new NotFoundError("Log not found");
@@ -107,8 +137,8 @@ export async function listLogs(db: AppDb, workspaceId: string, filters: { day?: 
   return rows.map((row) => ({ ...row.log, authorName: row.authorName, tags: allTags.filter((tag) => tag.logId === row.log.id).map((tag) => tag.name) }));
 }
 
-export async function restoreLog(db: AppDb, input: { id: string; workspaceId: string; authorId: string; day: string; title: string | null; body: string; createdAt: string; updatedAt: string; posX?: number; posY?: number; width?: number; height?: number }) {
-  await db.insert(logs).values({ ...input, deletedAt: null, mirrorDirty: false });
+export async function restoreLog(db: AppDb, input: { id: string; workspaceId: string; authorId: string; day: string; title: string | null; body: string; createdAt: string; updatedAt: string; posX?: number; posY?: number; width?: number; height?: number; zIndex?: number }) {
+  await db.insert(logs).values({ ...input, zIndex: input.zIndex ?? 0, deletedAt: null, mirrorDirty: false });
   await syncDerivedData(db, { id: input.id, workspaceId: input.workspaceId, body: input.body, day: input.day });
 }
 

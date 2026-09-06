@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CopyIcon, ExternalLinkIcon, FolderInputIcon, ListChecksIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { BringToFrontIcon, CopyIcon, CopyPlusIcon, ExternalLinkIcon, FolderInputIcon, ListChecksIcon, PencilIcon, SendToBackIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -13,11 +13,11 @@ import { LogEditor } from "@/components/log-editor";
 import { MarkdownPreview } from "@/components/markdown-preview";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWorkspace } from "@/components/workspace-provider";
 
-export type DragProps = { x: number; y: number; onMove: (x: number, y: number) => void; width?: number | null; height?: number | null; onResize?: (width: number, height: number) => void };
+export type DragProps = { x: number; y: number; zIndex?: number | null; onMove: (x: number, y: number) => void; onBringToFront?: () => void; onSendToBack?: () => void; width?: number | null; height?: number | null; onResize?: (width: number, height: number) => void };
 
 function ResizeHandle({ handlers }: { handlers: ReturnType<typeof useResize>["handlers"] }) {
   return <div
@@ -31,15 +31,15 @@ function ResizeHandle({ handlers }: { handlers: ReturnType<typeof useResize>["ha
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-function CardBody({ log, workspaceId, tasks, onToggleTask, isResized }: { log: LogSummary; workspaceId: string; tasks?: TaskSummary[]; onToggleTask?: (taskId: string, done: boolean) => void; isResized?: boolean }) {
+function CardBody({ log, workspaceId, tasks, onToggleTask, onDeleteAttachment, isResized }: { log: LogSummary; workspaceId: string; tasks?: TaskSummary[]; onToggleTask?: (taskId: string, done: boolean) => void; onDeleteAttachment?: (attachmentId: string, markdown: string) => void; isResized?: boolean }) {
   const shape = classifyLog(log.body);
   const containerClass = isResized ? "flex-1 min-h-0" : "max-h-80 [&>[data-slot=scroll-area-viewport]]:h-auto [&>[data-slot=scroll-area-viewport]]:max-h-80";
-  
+
   const content = (() => {
-    if (shape === "task") return <MarkdownPreview body={log.body} workspaceId={workspaceId} tasks={tasks} onToggleTask={onToggleTask} compact />;
-    if (shape === "snippet") return <MarkdownPreview body={log.body} workspaceId={workspaceId} highlightCode={false} clampCode compact />;
-    if (shape === "attachment") return <MarkdownPreview body={log.body} workspaceId={workspaceId} compact />;
-    return <MarkdownPreview body={log.body} workspaceId={workspaceId} tasks={tasks} onToggleTask={onToggleTask} highlightCode={false} compact />;
+    if (shape === "task") return <MarkdownPreview body={log.body} workspaceId={workspaceId} tasks={tasks} onToggleTask={onToggleTask} onDeleteAttachment={onDeleteAttachment} compact />;
+    if (shape === "snippet") return <MarkdownPreview body={log.body} workspaceId={workspaceId} highlightCode={false} clampCode onDeleteAttachment={onDeleteAttachment} compact />;
+    if (shape === "attachment") return <MarkdownPreview body={log.body} workspaceId={workspaceId} onDeleteAttachment={onDeleteAttachment} compact />;
+    return <MarkdownPreview body={log.body} workspaceId={workspaceId} tasks={tasks} onToggleTask={onToggleTask} onDeleteAttachment={onDeleteAttachment} highlightCode={false} compact />;
   })();
 
   return (
@@ -49,7 +49,7 @@ function CardBody({ log, workspaceId, tasks, onToggleTask, isResized }: { log: L
   );
 }
 
-export function LogCard({ log, tasks, onToggleTask, drag, resize, clickToEdit, gridMode, fixedHeight }: { log: LogSummary; tasks?: TaskSummary[]; onToggleTask?: (taskId: string, done: boolean) => void; drag?: DragProps; resize?: { width?: number | null; height?: number | null; onResize: (w: number, h: number) => void }; clickToEdit?: boolean; gridMode?: boolean; fixedHeight?: number }) {
+export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, clickToEdit, gridMode, fixedHeight }: { log: LogSummary; tasks?: TaskSummary[]; onToggleTask?: (taskId: string, done: boolean) => void; onDuplicate?: () => void; drag?: DragProps; resize?: { width?: number | null; height?: number | null; onResize: (w: number, h: number) => void }; clickToEdit?: boolean; gridMode?: boolean; fixedHeight?: number }) {
   const [editing, setEditing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -58,6 +58,17 @@ export function LogCard({ log, tasks, onToggleTask, drag, resize, clickToEdit, g
   const remove = useMutation({ mutationFn: () => api.deleteLog(workspace.id, log.id), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["tasks", workspace.id] }); toast.success("Log deleted"); }, onError: (error) => toast.error(error.message) });
   const move = useMutation({ mutationFn: (targetWorkspaceId: string) => api.moveLog(workspace.id, log.id, targetWorkspaceId), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["tasks", workspace.id] }); toast.success("Log moved"); }, onError: (error) => toast.error(error.message) });
   const pasteFile = async (file: File) => (await api.uploadAttachment(workspace.id, log.id, file)).relativeLink;
+  // Deleting an attachment from a card also has to strip its markdown
+  // reference from the body - otherwise the card is left showing a broken
+  // link to a file that no longer exists.
+  const deleteAttachment = useMutation({
+    mutationFn: async ({ attachmentId, markdown }: { attachmentId: string; markdown: string }) => {
+      await api.deleteAttachment(workspace.id, attachmentId);
+      return api.updateLog(workspace.id, log.id, { body: log.body.replace(markdown, "").replace(/\n{3,}/g, "\n\n").trim() });
+    },
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); toast.success("Attachment deleted"); },
+    onError: (error) => toast.error(error.message),
+  });
   const taskCount = tasks?.length ?? 0;
 
   const dragPos = useDragPosition({
@@ -73,7 +84,7 @@ export function LogCard({ log, tasks, onToggleTask, drag, resize, clickToEdit, g
     onCommit: (w, h) => drag?.onResize?.(w, h) ?? resize?.onResize(w, h),
   });
 
-  const positionStyle = drag ? { position: "absolute" as const, left: drag.x, top: drag.y, ...dragPos.style } : undefined;
+  const positionStyle = drag ? { position: "absolute" as const, left: drag.x, top: drag.y, zIndex: drag.zIndex ?? 0, ...dragPos.style } : undefined;
 
   const resolvedStyle: CSSProperties = { ...resizeHook.style };
   if (gridMode && !resizeHook.isResizing) {
@@ -116,13 +127,21 @@ export function LogCard({ log, tasks, onToggleTask, drag, resize, clickToEdit, g
   return <><ContextMenu><ContextMenuTrigger render={<Card {...cardProps} />}>
     {taskCount > 0 ? <Badge variant="secondary" className="absolute right-2 top-2 z-10 gap-1"><ListChecksIcon className="size-3" />{taskCount}</Badge> : null}
     {log.title ? <CardHeader className="shrink-0 pb-0"><CardTitle>{log.title}</CardTitle></CardHeader> : null}
-    <CardContent className={`min-h-0 ${log.title ? "pt-0" : ""} ${isResized ? "flex-1 flex flex-col" : ""}`}><CardBody log={log} workspaceId={workspace.id} tasks={tasks} onToggleTask={onToggleTask} isResized={isResized} /></CardContent>
+    <CardContent className={`min-h-0 ${log.title ? "pt-0" : ""} ${isResized ? "flex-1 flex flex-col" : ""}`}><CardBody log={log} workspaceId={workspace.id} tasks={tasks} onToggleTask={onToggleTask} onDeleteAttachment={(attachmentId, markdown) => deleteAttachment.mutate({ attachmentId, markdown })} isResized={isResized} /></CardContent>
     {showResize ? <ResizeHandle handlers={resizeHook.handlers} /> : null}
   </ContextMenuTrigger><ContextMenuContent><ContextMenuGroup>
     <ContextMenuItem onClick={() => setEditing(true)}><PencilIcon />Edit</ContextMenuItem>
     <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(log.body); toast.success("Markdown copied"); }}><CopyIcon />Copy as markdown</ContextMenuItem>
     <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(`${location.origin}/logs/${log.id}`); toast.success("Link copied"); }}><ExternalLinkIcon />Copy link</ContextMenuItem>
     {workspaces.length > 1 ? <ContextMenuSub><ContextMenuSubTrigger><FolderInputIcon />Move to workspace</ContextMenuSubTrigger><ContextMenuSubContent>{workspaces.filter((candidate) => candidate.id !== workspace.id).map((candidate) => <ContextMenuItem key={candidate.id} onClick={() => move.mutate(candidate.id)}>{candidate.name}</ContextMenuItem>)}</ContextMenuSubContent></ContextMenuSub> : null}
+  </ContextMenuGroup>
+  {(drag?.onBringToFront || drag?.onSendToBack || onDuplicate) ? <><ContextMenuSeparator /><ContextMenuGroup>
+    {drag?.onBringToFront ? <ContextMenuItem onClick={drag.onBringToFront}><BringToFrontIcon />Bring to front</ContextMenuItem> : null}
+    {drag?.onSendToBack ? <ContextMenuItem onClick={drag.onSendToBack}><SendToBackIcon />Send to back</ContextMenuItem> : null}
+    {onDuplicate ? <ContextMenuItem onClick={onDuplicate}><CopyPlusIcon />Duplicate</ContextMenuItem> : null}
+  </ContextMenuGroup></> : null}
+  <ContextMenuSeparator />
+  <ContextMenuGroup>
     <ContextMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}><Trash2Icon />Delete</ContextMenuItem>
   </ContextMenuGroup></ContextMenuContent></ContextMenu>
   <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>

@@ -160,6 +160,24 @@ export function DayBoard({ date, autoNew = false }: { date: string; autoNew?: bo
     queryClient.setQueryData<{ logs: LogSummary[] }>(["logs", workspace.id, date], (data) => data && { logs: data.logs.map((log) => (log.id === id ? { ...log, width, height } : log)) });
     void api.setLogSize(workspace.id, id, width, height).catch(() => toast.error("Couldn't save the new size"));
   };
+  const restackLog = (id: string, direction: "front" | "back") => {
+    const currentLogs = logs.data?.logs ?? [];
+    if (direction === "front") {
+      const zIndex = Math.max(0, ...currentLogs.map((log) => log.zIndex)) + 1;
+      queryClient.setQueryData<{ logs: LogSummary[] }>(["logs", workspace.id, date], (data) => data && { logs: data.logs.map((log) => (log.id === id ? { ...log, zIndex } : log)) });
+      void api.setLogZIndex(workspace.id, id, zIndex).catch(() => toast.error("Couldn't restack the card"));
+      return;
+    }
+    // A negative z-index doesn't just render behind its sibling cards - it
+    // slips the card into the CanvasViewport's own transform-created
+    // stacking context at a level below zero, which stops it receiving
+    // pointer events entirely. So "back" never goes negative: everyone else
+    // steps up by one and the target drops to 0 instead.
+    const updates = currentLogs.map((log) => ({ id: log.id, zIndex: log.id === id ? 0 : log.zIndex + 1 }));
+    queryClient.setQueryData<{ logs: LogSummary[] }>(["logs", workspace.id, date], (data) => data && { logs: data.logs.map((log) => { const update = updates.find((candidate) => candidate.id === log.id); return update ? { ...log, zIndex: update.zIndex } : log; }) });
+    void Promise.all(updates.map((update) => api.setLogZIndex(workspace.id, update.id, update.zIndex))).catch(() => toast.error("Couldn't restack the card"));
+  };
+  const duplicateLog = useMutation({ mutationFn: (id: string) => api.duplicateLog(workspace.id, id), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); toast.success("Log duplicated"); }, onError: (error) => toast.error(error.message) });
   const tidyCards = useMutation({
     mutationFn: (positions: TidyCardPosition[]) => Promise.all(positions.map((position) => api.setLogPosition(workspace.id, position.id, position.x, position.y))),
     onMutate: (positions) => {
@@ -226,7 +244,7 @@ export function DayBoard({ date, autoNew = false }: { date: string; autoNew?: bo
                   }
                   return (
                     <div key={log.id} className={colSpan}>
-                      <LogCard log={log} tasks={tasksByLog[log.id]} onToggleTask={(id, done) => toggleTask.mutate({ id, done })} resize={{ width: log.width, height: log.height, onResize: (w, h) => resizeLog(log.id, w, h) }} clickToEdit gridMode />
+                      <LogCard log={log} tasks={tasksByLog[log.id]} onToggleTask={(id, done) => toggleTask.mutate({ id, done })} onDuplicate={() => duplicateLog.mutate(log.id)} resize={{ width: log.width, height: log.height, onResize: (w, h) => resizeLog(log.id, w, h) }} clickToEdit gridMode />
                     </div>
                   );
                 })
@@ -236,7 +254,7 @@ export function DayBoard({ date, autoNew = false }: { date: string; autoNew?: bo
         ) : (
           <CanvasViewport>
             <div ref={boardRef} className="relative h-[2000px] w-[2000px]">
-              {logs.isLoading ? <DayBoardSkeleton /> : placed.map(({ log, position }) => <LogCard key={log.id} log={log} tasks={tasksByLog[log.id]} onToggleTask={(id, done) => toggleTask.mutate({ id, done })} drag={{ x: position.x, y: position.y, width: log.width, height: log.height, onMove: (x, y) => moveLog(log.id, x, y), onResize: (w, h) => resizeLog(log.id, w, h) }} />)}
+              {logs.isLoading ? <DayBoardSkeleton /> : placed.map(({ log, position }) => <LogCard key={log.id} log={log} tasks={tasksByLog[log.id]} onToggleTask={(id, done) => toggleTask.mutate({ id, done })} onDuplicate={() => duplicateLog.mutate(log.id)} drag={{ x: position.x, y: position.y, zIndex: log.zIndex, width: log.width, height: log.height, onMove: (x, y) => moveLog(log.id, x, y), onResize: (w, h) => resizeLog(log.id, w, h), onBringToFront: () => restackLog(log.id, "front"), onSendToBack: () => restackLog(log.id, "back") }} />)}
               {showTasks ? <TasksCard key={date} date={date} /> : null}
             </div>
           </CanvasViewport>

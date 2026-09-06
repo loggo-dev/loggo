@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
-import { createLog, deleteLog, getLog, listLogs, moveLog, setLogPosition, setLogSize, updateLog } from "../domain/log";
+import { createLog, deleteLog, duplicateLog, getLog, listLogs, moveLog, setLogPosition, setLogSize, setLogZIndex, updateLog } from "../domain/log";
 import type { AppEnv } from "./types";
 
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -37,5 +37,10 @@ export const logRoutes = new Hono<AppEnv>()
     await setLogSize(context.get("db"), context.req.param("logId"), context.get("workspace").id, context.req.valid("json").width, context.req.valid("json").height);
     return context.json({ ok: true });
   })
+  .patch("/:logId/zindex", zValidator("json", z.object({ zIndex: z.number().int() })), async (context) => {
+    await setLogZIndex(context.get("db"), context.req.param("logId"), context.get("workspace").id, context.req.valid("json").zIndex);
+    return context.json({ ok: true });
+  })
+  .post("/:logId/duplicate", async (context) => context.json(await duplicateLog(context.get("db"), context.get("storage"), context.req.param("logId"), context.get("workspace").id, context.get("user").id), 201))
   .post("/:logId/move/:targetWorkspaceId", async (context) => context.json(await moveLog(context.get("db"), context.get("storage"), context.req.param("logId"), context.get("workspace").id, context.get("targetWorkspace").id)))
   .delete("/:logId", async (context) => { await deleteLog(context.get("db"), context.get("storage"), context.req.param("logId"), context.get("workspace").id); return context.json({ ok: true }); });

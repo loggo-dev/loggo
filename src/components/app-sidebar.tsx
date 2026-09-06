@@ -105,11 +105,7 @@ export function AppSidebar({ showSecondarySidebar, calendarOpen, onToggleCalenda
 
       {showSecondarySidebar ? <Sidebar collapsible="none" className="hidden flex-1 border-r-0 md:flex" data-state={calendarOpen ? "expanded" : "collapsed"}>
         {calendarOpen ? <>
-          <SidebarHeader className="gap-3 border-b border-sidebar-border p-4">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{workspace.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{workspace.kind === "personal" ? "Private workspace" : "Shared workspace"}</p>
-            </div>
+          <SidebarHeader className="gap-3 p-4">
             <Button variant="outline" className="justify-start bg-background/40" onClick={() => window.dispatchEvent(new Event("loggo:search"))}><SearchIcon data-icon="inline-start" /><span>Search Logs</span><kbd className="ml-auto hidden shrink-0 rounded border border-border bg-background px-1.5 py-0.5 font-sans text-[10px] font-medium text-muted-foreground sm:block">⌘K</kbd></Button>
           </SidebarHeader>
           <SidebarContent>

@@ -20,11 +20,19 @@ export function LogDetailView({ id }: { id: string }) {
   const queryClient = useQueryClient();
   const log = useQuery({ queryKey: ["log", workspace.id, id], queryFn: () => api.log(workspace.id, id) });
   const update = useMutation({ mutationFn: (values: { title: string | null; body: string }) => api.updateLog(workspace.id, id, values), onSuccess: () => { setEditing(false); void queryClient.invalidateQueries({ queryKey: ["log", workspace.id, id] }); toast.success("Log saved"); }, onError: (error) => toast.error(error.message) });
+  const deleteAttachment = useMutation({
+    mutationFn: async ({ attachmentId, markdown }: { attachmentId: string; markdown: string }) => {
+      await api.deleteAttachment(workspace.id, attachmentId);
+      return api.updateLog(workspace.id, id, { body: (log.data?.body ?? "").replace(markdown, "").replace(/\n{3,}/g, "\n\n").trim() });
+    },
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["log", workspace.id, id] }); toast.success("Attachment deleted"); },
+    onError: (error) => toast.error(error.message),
+  });
   if (log.isLoading) return <main className="page-shell"><Skeleton className="h-80 w-full" /></main>;
   if (!log.data) return <main className="page-shell"><p>Log not found.</p></main>;
   const data = log.data;
   const pasteFile = async (file: File) => (await api.uploadAttachment(workspace.id, id, file)).relativeLink;
   return <main className="page-shell"><div className="flex items-center justify-between"><Button variant="ghost" nativeButton={false} render={<Link href={`/d/${data.day}`} />}><ArrowLeftIcon data-icon="inline-start" />{data.day}</Button><Button variant="outline" onClick={() => setEditing((value) => !value)}><PencilIcon data-icon="inline-start" />{editing ? "Close editor" : "Edit"}</Button></div>
-    <Card>{editing ? <CardContent><LogEditor initialTitle={data.title ?? ""} initialBody={data.body} tags={data.tags} saving={update.isPending} onSave={(values) => update.mutate(values)} onCancel={() => setEditing(false)} onPasteFile={pasteFile} titleClassName="text-2xl md:text-2xl font-heading font-medium leading-snug" /></CardContent> : <><CardHeader><CardTitle className="text-2xl">{data.title ?? "Untitled Log"}</CardTitle><p className="text-sm text-muted-foreground">{data.author.name} · {new Date(data.createdAt).toLocaleString()}</p></CardHeader><CardContent><MarkdownPreview body={data.body} workspaceId={workspace.id} /></CardContent><CardFooter className="flex-wrap gap-2">{data.tags.map((tag) => <Badge key={tag} variant="secondary">#{tag}</Badge>)}</CardFooter></>}</Card>
+    <Card>{editing ? <CardContent><LogEditor initialTitle={data.title ?? ""} initialBody={data.body} tags={data.tags} saving={update.isPending} onSave={(values) => update.mutate(values)} onCancel={() => setEditing(false)} onPasteFile={pasteFile} titleClassName="text-2xl md:text-2xl font-heading font-medium leading-snug" /></CardContent> : <><CardHeader><CardTitle className="text-2xl">{data.title ?? "Untitled Log"}</CardTitle><p className="text-sm text-muted-foreground">{data.author.name} · {new Date(data.createdAt).toLocaleString()}</p></CardHeader><CardContent><MarkdownPreview body={data.body} workspaceId={workspace.id} onDeleteAttachment={(attachmentId, markdown) => deleteAttachment.mutate({ attachmentId, markdown })} /></CardContent><CardFooter className="flex-wrap gap-2">{data.tags.map((tag) => <Badge key={tag} variant="secondary">#{tag}</Badge>)}</CardFooter></>}</Card>
   </main>;
 }

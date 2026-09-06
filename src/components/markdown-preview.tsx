@@ -6,11 +6,11 @@ import remarkGfm from "remark-gfm";
 import { CodeBlock } from "@/components/code-block";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Attachment, AttachmentContent, AttachmentGroup, AttachmentMedia, AttachmentTitle, AttachmentDescription, AttachmentActions, AttachmentAction } from "@/components/ui/attachment";
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { useCanvasInteraction } from "@/components/canvas-provider";
-import { FileIcon, DownloadIcon, ExternalLinkIcon, MoreVerticalIcon, VideoIcon, XIcon } from "lucide-react";
+import { FileIcon, DownloadIcon, ExternalLinkIcon, MoreVerticalIcon, Trash2Icon, VideoIcon, XIcon } from "lucide-react";
 import type { TaskSummary } from "@/lib/api-client";
 import { cn, humanizeDate } from "@/lib/utils";
 
@@ -56,7 +56,7 @@ function youtubeVideoId(href: string) {
   return href.match(YOUTUBE_PATTERN)?.[1] ?? null;
 }
 
-export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, highlightCode = true, clampCode = false, compact = false }: { body: string; workspaceId?: string; tasks?: TaskSummary[]; onToggleTask?: (taskId: string, done: boolean) => void; highlightCode?: boolean; clampCode?: boolean; compact?: boolean }) {
+export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, onDeleteAttachment, highlightCode = true, clampCode = false, compact = false }: { body: string; workspaceId?: string; tasks?: TaskSummary[]; onToggleTask?: (taskId: string, done: boolean) => void; onDeleteAttachment?: (attachmentId: string, markdown: string) => void; highlightCode?: boolean; clampCode?: boolean; compact?: boolean }) {
   // Chrome blanks a cross-origin iframe (YouTube embeds) while an ancestor's
   // CSS transform is actively changing, which happens continuously while
   // panning/zooming the day board's canvas - swap in a static placeholder
@@ -161,7 +161,10 @@ export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, highli
     ) : null}
 
     {matches.length > 0 ? (
-      <AttachmentGroup className="mt-auto pt-2 empty:hidden">
+      // -mx-2 px-2 gives the focus/hover ring on the first and last card room
+      // inside the scrollable area - without it, overflow-x-auto clips the
+      // ring flush against the container edge.
+      <AttachmentGroup className="mt-auto pt-2 empty:hidden -mx-2 px-2">
         {matches.map((match, i) => {
           const text = match[1] || match[2] || "Attachment";
           const url = match[3];
@@ -228,6 +231,10 @@ export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, highli
                       a.click();
                       document.body.removeChild(a);
                     }}><DownloadIcon data-icon="inline-start" />Download</DropdownMenuItem>
+                    {onDeleteAttachment ? <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem variant="destructive" onClick={(e) => { e.stopPropagation(); onDeleteAttachment(id, match[0]); }}><Trash2Icon data-icon="inline-start" />Delete</DropdownMenuItem>
+                    </> : null}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </AttachmentActions>
@@ -254,6 +261,12 @@ export function MarkdownPreview({ body, workspaceId, tasks, onToggleTask, highli
                 }}>
                   <DownloadIcon data-icon="inline-start" />Download
                 </ContextMenuItem>
+                {onDeleteAttachment ? <>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem variant="destructive" onClick={(e) => { e.stopPropagation(); onDeleteAttachment(id, match[0]); }}>
+                    <Trash2Icon data-icon="inline-start" />Delete
+                  </ContextMenuItem>
+                </> : null}
               </ContextMenuContent>
             </ContextMenu>
           );

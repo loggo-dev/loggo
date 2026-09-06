@@ -54,6 +54,7 @@ export async function writeLogMirror(db: AppDb, storage: Storage, logId: string)
       ...(record.log.posY != null ? [`pos_y: ${record.log.posY}`] : []),
       ...(record.log.width != null ? [`width: ${record.log.width}`] : []),
       ...(record.log.height != null ? [`height: ${record.log.height}`] : []),
+      ...(record.log.zIndex !== 0 ? [`z_index: ${record.log.zIndex}`] : []),
       "---",
       "",
       record.log.body,
@@ -86,7 +87,7 @@ export async function retryDirtyMirrors(db: AppDb, storage: Storage) {
   return dirty.length;
 }
 
-export type MirrorFrontmatter = { id: string; title: string | null; day: string; created: string; updated: string; author: string; workspace: string; workspace_name?: string; workspace_color?: string; workspace_icon?: string; tags: string[]; pos_x?: number; pos_y?: number; width?: number; height?: number };
+export type MirrorFrontmatter = { id: string; title: string | null; day: string; created: string; updated: string; author: string; workspace: string; workspace_name?: string; workspace_color?: string; workspace_icon?: string; tags: string[]; pos_x?: number; pos_y?: number; width?: number; height?: number; z_index?: number };
 
 export function parseMirrorFile(bytes: Uint8Array): { frontmatter: MirrorFrontmatter; body: string } {
   const source = decoder.decode(bytes).replace(/\r\n/g, "\n");

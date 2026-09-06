@@ -47,6 +47,7 @@ export function LogsView({ initialTag }: { initialTag?: string }) {
   const tasks = useQuery({ queryKey: ["tasks", workspace.id], queryFn: () => api.tasks(workspace.id) });
   const tasksByLog = Object.groupBy(tasks.data?.tasks ?? [], (task) => task.logId);
   const toggleTask = useMutation({ mutationFn: ({ id, done }: { id: string; done: boolean }) => api.toggleTask(workspace.id, id, done), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["tasks", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); }, onError: (error) => toast.error(error.message) });
+  const duplicateLog = useMutation({ mutationFn: (id: string) => api.duplicateLog(workspace.id, id), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); toast.success("Log duplicated"); }, onError: (error) => toast.error(error.message) });
   
   const handleTagChange = (value: string) => { setTag(value); setPage(1); };
 
@@ -69,7 +70,7 @@ export function LogsView({ initialTag }: { initialTag?: string }) {
         else if (log.width > 600) colSpan = "col-span-1 md:col-span-2 lg:col-span-3";
         else if (log.width > 350) colSpan = "col-span-1 md:col-span-2";
       }
-      return <div key={log.id} className={colSpan}><LogCard log={log} tasks={tasksByLog[log.id]} onToggleTask={(id, done) => toggleTask.mutate({ id, done })} gridMode fixedHeight={LOG_CARD_HEIGHT} /></div>;
+      return <div key={log.id} className={colSpan}><LogCard log={log} tasks={tasksByLog[log.id]} onToggleTask={(id, done) => toggleTask.mutate({ id, done })} onDuplicate={() => duplicateLog.mutate(log.id)} gridMode fixedHeight={LOG_CARD_HEIGHT} /></div>;
     })}</div> : <Empty className="border"><EmptyHeader><EmptyTitle>No Logs found</EmptyTitle><EmptyDescription>Try another tag or date range, or create a new Log.</EmptyDescription></EmptyHeader></Empty>}
     {logs.data ? <SimplePagination page={logs.data.page} hasMore={logs.data.hasMore} onPageChange={setPage} /> : null}
   </main>;

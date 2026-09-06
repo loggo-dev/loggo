@@ -2,7 +2,7 @@
 
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { EditorState, type Extension } from "@codemirror/state";
-import { EditorView, placeholder as placeholderExtension } from "@codemirror/view";
+import { EditorView, placeholder as placeholderExtension, keymap } from "@codemirror/view";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { defaultEditorCommands, filterEditorCommands, type EditorCommand } from "./commands/editorCommands";
 import { baseSetup } from "./extensions/baseSetup";
@@ -11,6 +11,7 @@ import { liveMarkdown } from "./extensions/liveMarkdown";
 import { insertLink, markdownEditorKeymap, toggleWrap } from "./extensions/markdownKeymap";
 import { selectionRangeListener, type SelectionRange } from "./extensions/selectionToolbar";
 import { slashCommandKeymap, slashRangeField, slashRangeListener, type SlashMenuBridge, type SlashRange } from "./extensions/slashCommands";
+import { tableKeymap } from "./extensions/tableKeymap";
 import { markdownEditorTheme } from "./extensions/theme";
 import { codeHighlighting, languages } from "./highlighting";
 import { SelectionToolbar } from "./SelectionToolbar";
@@ -204,6 +205,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           liveMarkdown,
           linkClickExtension,
           markdownEditorKeymap,
+          keymap.of(tableKeymap),
           slashRangeField,
           slashRangeListener(updateSlashFromRange),
           slashCommandKeymap(bridge),
