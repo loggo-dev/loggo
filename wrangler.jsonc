@@ -10,6 +10,12 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // Belt-and-suspenders: cloudflare-config.ts already forces read-only
+  // whenever DEMO_MODE is baked in at build time (build:workers), but this
+  // var is explicit here too in case this Worker is ever built without it.
+  "vars": {
+    "READ_ONLY": "true"
+  },
   // Reseeds the demo daily with fresh dates (see routes/internal.ts and
   // demo-seed.ts) so the seeded content never falls off "today".
   "triggers": {

@@ -1,3 +1,4 @@
+import { DEMO_MODE } from "@/lib/demo-mode";
 import type { AppConfig } from "../routes/types";
 
 const ALLOWED_FILE_TYPES = "image/png,image/jpeg,image/gif,image/webp,application/pdf,application/zip,application/x-zip-compressed,text/plain";
@@ -13,10 +14,17 @@ export async function buildCloudflareConfig(): Promise<AppConfig | null> {
 
   const { createD1Db } = await import("./d1-db");
   const { R2Storage } = await import("./r2-storage");
-  const readOnly = env.READ_ONLY === "true";
+  // DEMO_MODE is baked in at build time (build:workers sets
+  // NEXT_PUBLIC_DEMO_MODE=true - see src/lib/demo-mode.ts), so the public
+  // demo is read-only even if wrangler.jsonc's READ_ONLY var is ever
+  // missing or misconfigured - it doesn't rely on remembering to set both.
+  const readOnly = DEMO_MODE || env.READ_ONLY === "true";
   return {
     db: createD1Db(env.DB),
-    storage: readOnly || !env.BUCKET ? null : new R2Storage(env.BUCKET),
+    // Not gated on `readOnly`: mutations are already rejected by
+    // rejectReadOnly in every route that matters, and attachments still need
+    // to be readable (GET /file) on the read-only demo.
+    storage: env.BUCKET ? new R2Storage(env.BUCKET) : null,
     readOnly,
     maxAttachmentSize: Number(env.MAX_ATTACHMENT_SIZE ?? 10 * 1024 * 1024),
     allowedFileTypes: (env.ALLOWED_FILE_TYPES ?? ALLOWED_FILE_TYPES).split(","),
