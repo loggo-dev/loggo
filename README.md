@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/img.png" alt="Loggo" width="96" />
+  <img src="public/logo.png" alt="Loggo" width="96" />
 </p>
 
 <h1 align="center">Loggo</h1>
@@ -9,8 +9,12 @@
 </p>
 
 <p align="center">
-  <a href="https://docs.loggo.dev">Docs</a> ·
-  <a href="https://github.com/loggo-dev/docs">Docs repo</a>
+  <a href="https://github.com/loggo-dev/loggo/actions/workflows/ci.yml"><img src="https://github.com/loggo-dev/loggo/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/loggo-dev/loggo/releases"><img src="https://img.shields.io/github/v/release/loggo-dev/loggo" alt="Latest release"></a>
+  <a href="https://github.com/loggo-dev/loggo/pkgs/container/recipery"><img src="https://img.shields.io/badge/ghcr.io-recipery--dev%2Frecipery-blue?logo=docker&logoColor=white" alt="Docker image"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="License"></a>
+  <a href="https://loggo.dev"><img src="https://img.shields.io/badge/website-loggo.dev-orange" alt="Website"></a>
+  <a href="https://docs.loggo.dev"><img src="https://img.shields.io/badge/docs-docs.loggo.dev-blue" alt="Documentation"></a>
 </p>
 
 ## Develop
