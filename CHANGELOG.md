@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/loggo-dev/loggo/compare/v1.3.0...v1.3.1) (2026-09-07)
+
+
+### Bug Fixes
+
+* remove unused dependencies from pnpm-lock.yaml ([3ffb2df](https://github.com/loggo-dev/loggo/commit/3ffb2dfa702d69cb2c5da1a0533041c6123f1222))
+
 ## [1.3.0](https://github.com/loggo-dev/loggo/compare/v1.2.7...v1.3.0) (2026-09-07)
 
 
