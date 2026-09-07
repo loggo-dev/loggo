@@ -2,6 +2,7 @@ import { syntaxTree } from "@codemirror/language";
 import type { EditorState } from "@codemirror/state";
 import { Decoration, EditorView, ViewPlugin, WidgetType, type DecorationSet, type ViewUpdate } from "@codemirror/view";
 import { taskCheckboxDecoration } from "./checkboxes";
+import { AttachmentWidget } from "./attachmentWidget";
 
 // Regex-per-line is what the previous implementation used; this rebuilds the
 // same live-preview effect on top of the Lezer syntax tree instead, so
@@ -113,16 +114,40 @@ function build(view: EditorView): DecorationSet {
             }
             break;
           }
+          case "Image":
           case "Link": {
             const node = ref.node;
             const marks = node.getChildren("LinkMark");
             const openBracket = marks[0];
             const closeBracket = marks[1];
             if (!openBracket || !closeBracket) break;
-            span(openBracket.to, closeBracket.from, linkTextMark);
-            if (!selectionOverlaps(state, node.from, node.to)) {
-              span(openBracket.from, openBracket.to, hide);
-              span(closeBracket.from, node.to, hide);
+
+            const urlNode = node.getChild("URL");
+            const isAttachment = urlNode && state.sliceDoc(urlNode.from, urlNode.to).includes("./_files/");
+
+            if (isAttachment && !selectionOverlaps(state, node.from, node.to)) {
+              // Replace the whole markdown link with an attachment widget card
+              const url = urlNode ? state.sliceDoc(urlNode.from, urlNode.to) : "";
+              const title = state.sliceDoc(openBracket.to, closeBracket.from) || "Attachment";
+              const isImage = ref.name === "Image";
+              
+              const filename = url.slice("./_files/".length);
+              const ext = filename.split('.').pop()?.toUpperCase() || 'FILE';
+
+              span(node.from, node.to, Decoration.replace({
+                widget: new AttachmentWidget(title, ext, isImage, url)
+              }));
+            } else {
+              span(openBracket.to, closeBracket.from, isAttachment ? Decoration.mark({ class: "cm-md-attachment" }) : linkTextMark);
+              if (!selectionOverlaps(state, node.from, node.to)) {
+                if (ref.name === "Image") {
+                  const imgMark = node.getChild("ImageMark");
+                  if (imgMark) span(imgMark.from, openBracket.to, hide);
+                } else {
+                  span(openBracket.from, openBracket.to, hide);
+                }
+                span(closeBracket.from, node.to, hide);
+              }
             }
             break;
           }

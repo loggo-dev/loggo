@@ -38,6 +38,22 @@ export const markdownEditorTheme = EditorView.theme({
     padding: "0 4px",
   },
   ".cm-md-link, .cm-md-link *": { color: "var(--primary) !important", textDecoration: "underline", textUnderlineOffset: "3px", cursor: "text" },
+  
+  ".cm-md-attachment": {
+    display: "inline-flex",
+    alignItems: "center",
+    background: "var(--muted)",
+    padding: "0 8px",
+    borderRadius: "var(--radius)",
+    fontSize: "0.85em",
+    fontWeight: "500",
+    color: "var(--foreground)",
+    border: "1px solid var(--border)",
+  },
+  ".cm-md-attachment::before": {
+    content: "'📎'",
+    marginRight: "4px",
+  },
 
   ".cm-md-blockquote": {
     borderLeft: "3px solid var(--border)",
