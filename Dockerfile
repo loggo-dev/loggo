@@ -27,6 +27,10 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=loggo:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=loggo:nodejs /app/.next/static ./.next/static
+# createNodeDb() reads this folder by relative path at runtime (migrate()),
+# so Next's standalone file tracing never picks it up - it only follows
+# actual require()/import calls, not runtime fs paths.
+COPY --from=builder --chown=loggo:nodejs /app/src/server/db/migrations ./src/server/db/migrations
 
 USER loggo
 EXPOSE 3000
