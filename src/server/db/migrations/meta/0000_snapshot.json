@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "8b232712-3a86-4527-aa4d-5aa80878e298",
+  "id": "5adcc02b-cc75-4962-80ca-16a294c70e97",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "applied_templates": {
@@ -330,6 +330,14 @@
           "notNull": true,
           "autoincrement": false,
           "default": 0
+        },
+        "is_locked": {
+          "name": "is_locked",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         }
       },
       "indexes": {

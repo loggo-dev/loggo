@@ -79,6 +79,7 @@ export const logs = sqliteTable(
     width: integer("width"),
     height: integer("height"),
     zIndex: integer("z_index").notNull().default(0),
+    isLocked: integer("is_locked", { mode: "boolean" }).notNull().default(false),
   },
   (table) => [
     index("logs_workspace_day_idx").on(table.workspaceId, table.day),

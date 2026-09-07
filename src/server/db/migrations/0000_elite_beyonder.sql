@@ -44,6 +44,7 @@ CREATE TABLE `logs` (
 	`width` integer,
 	`height` integer,
 	`z_index` integer DEFAULT 0 NOT NULL,
+	`is_locked` integer DEFAULT false NOT NULL,
 	FOREIGN KEY (`workspace_id`) REFERENCES `workspaces`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`author_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );

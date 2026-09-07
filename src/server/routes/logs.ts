@@ -5,7 +5,7 @@ import { createLog, deleteLog, duplicateLog, getLog, listLogs, moveLog, setLogPo
 import type { AppEnv } from "./types";
 
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const logInput = z.object({ day, title: z.string().max(200).nullable().optional(), body: z.string().max(2_000_000) });
+const logInput = z.object({ day, title: z.string().max(200).nullable().optional(), body: z.string().max(2_000_000), isLocked: z.boolean().optional() });
 const createInput = logInput.extend({ posX: z.number().int().optional(), posY: z.number().int().optional() });
 
 export const logRoutes = new Hono<AppEnv>()

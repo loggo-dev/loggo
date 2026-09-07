@@ -38,7 +38,7 @@ export async function rebuildFromStorage(db: AppDb, storage: Storage) {
       await db.insert(workspaces).values(workspace);
       await db.insert(workspaceMembers).values({ workspaceId: workspace.id, userId: author.id, role: "owner" });
     }
-    await restoreLog(db, { id: frontmatter.id, workspaceId: workspace.id, authorId: author.id, day: frontmatter.day, title: frontmatter.title, body, createdAt: frontmatter.created, updatedAt: frontmatter.updated, posX: frontmatter.pos_x, posY: frontmatter.pos_y, width: frontmatter.width, height: frontmatter.height, zIndex: frontmatter.z_index });
+    await restoreLog(db, { id: frontmatter.id, workspaceId: workspace.id, authorId: author.id, day: frontmatter.day, title: frontmatter.title, body, createdAt: frontmatter.created, updatedAt: frontmatter.updated, posX: frontmatter.pos_x, posY: frontmatter.pos_y, width: frontmatter.width, height: frontmatter.height, zIndex: frontmatter.z_index, isLocked: frontmatter.is_locked });
     restored += 1;
   }
   return { restored, skipped, total: keys.length };

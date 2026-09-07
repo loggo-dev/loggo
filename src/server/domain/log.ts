@@ -38,7 +38,7 @@ async function syncDerivedData(db: AppDb, log: { id: string; workspaceId: string
 export async function createLog(db: AppDb, storage: Storage | null, params: { workspaceId: string; authorId: string; day: string; title?: string | null; body: string; posX?: number | null; posY?: number | null }) {
   if (!DAY_PATTERN.test(params.day) || Number.isNaN(Date.parse(`${params.day}T00:00:00Z`))) throw new ValidationError("Day must be a valid YYYY-MM-DD date");
   const now = new Date().toISOString();
-  const log = { id: ulid(), workspaceId: params.workspaceId, authorId: params.authorId, day: params.day, title: params.title?.trim() || null, body: params.body, createdAt: now, updatedAt: now, deletedAt: null, mirrorDirty: false, posX: params.posX ?? null, posY: params.posY ?? null };
+  const log = { id: ulid(), workspaceId: params.workspaceId, authorId: params.authorId, day: params.day, title: params.title?.trim() || null, body: params.body, createdAt: now, updatedAt: now, deletedAt: null, mirrorDirty: false, posX: params.posX ?? null, posY: params.posY ?? null, isLocked: false };
   await db.atomic(async (tx) => {
     await tx.insert(logs).values(log);
     await syncDerivedData(tx as unknown as AppDb, log);
@@ -47,12 +47,12 @@ export async function createLog(db: AppDb, storage: Storage | null, params: { wo
   return getLog(db, log.id);
 }
 
-export async function updateLog(db: AppDb, storage: Storage | null, id: string, params: { title?: string | null; body?: string }, workspaceId?: string) {
+export async function updateLog(db: AppDb, storage: Storage | null, id: string, params: { title?: string | null; body?: string; isLocked?: boolean }, workspaceId?: string) {
   const current = (await db.select().from(logs).where(activeLogWhere(eq(logs.id, id), workspaceId ? eq(logs.workspaceId, workspaceId) : undefined)).limit(1))[0];
   if (!current) throw new NotFoundError("Log not found");
-  const next = { ...current, ...(params.title !== undefined ? { title: params.title?.trim() || null } : {}), ...(params.body !== undefined ? { body: params.body } : {}), updatedAt: new Date().toISOString() };
+  const next = { ...current, ...(params.title !== undefined ? { title: params.title?.trim() || null } : {}), ...(params.body !== undefined ? { body: params.body } : {}), ...(params.isLocked !== undefined ? { isLocked: params.isLocked } : {}), updatedAt: new Date().toISOString() };
   await db.atomic(async (tx) => {
-    await tx.update(logs).set({ title: next.title, body: next.body, updatedAt: next.updatedAt }).where(eq(logs.id, id));
+    await tx.update(logs).set({ title: next.title, body: next.body, isLocked: next.isLocked, updatedAt: next.updatedAt }).where(eq(logs.id, id));
     await syncDerivedData(tx as unknown as AppDb, next);
   });
   if (storage) await writeLogMirror(db, storage, id);
@@ -95,6 +95,7 @@ export async function duplicateLog(db: AppDb, storage: Storage | null, id: strin
     posY: current.posY != null ? current.posY + 24 : null,
     width: current.width, height: current.height,
     zIndex: (maxZ ?? 0) + 1,
+    isLocked: current.isLocked,
   };
   await db.atomic(async (tx) => {
     await tx.insert(logs).values(log);
@@ -137,8 +138,8 @@ export async function listLogs(db: AppDb, workspaceId: string, filters: { day?: 
   return rows.map((row) => ({ ...row.log, authorName: row.authorName, tags: allTags.filter((tag) => tag.logId === row.log.id).map((tag) => tag.name) }));
 }
 
-export async function restoreLog(db: AppDb, input: { id: string; workspaceId: string; authorId: string; day: string; title: string | null; body: string; createdAt: string; updatedAt: string; posX?: number; posY?: number; width?: number; height?: number; zIndex?: number }) {
-  await db.insert(logs).values({ ...input, zIndex: input.zIndex ?? 0, deletedAt: null, mirrorDirty: false });
+export async function restoreLog(db: AppDb, input: { id: string; workspaceId: string; authorId: string; day: string; title: string | null; body: string; createdAt: string; updatedAt: string; posX?: number; posY?: number; width?: number; height?: number; zIndex?: number; isLocked?: boolean }) {
+  await db.insert(logs).values({ ...input, zIndex: input.zIndex ?? 0, isLocked: input.isLocked ?? false, deletedAt: null, mirrorDirty: false });
   await syncDerivedData(db, { id: input.id, workspaceId: input.workspaceId, body: input.body, day: input.day });
 }
 

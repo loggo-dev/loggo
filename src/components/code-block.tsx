@@ -3,11 +3,12 @@
 import { LanguageDescription } from "@codemirror/language";
 import { Compartment, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { CheckIcon, CopyIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, MaximizeIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { codeHighlighting, languages } from "@/components/editor/highlighting";
 import { useCanvasInteraction } from "@/components/canvas-provider";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 const languageCompartment = new Compartment();
@@ -34,7 +35,7 @@ function readOnlyView(parent: HTMLDivElement, code: string) {
   });
 }
 
-export function CodeBlock({ code, language, highlighted = true, clampHeight }: { code: string; language?: string; highlighted?: boolean; clampHeight?: boolean }) {
+export function CodeBlock({ code, language, highlighted = true, clampHeight, showExpand = true }: { code: string; language?: string; highlighted?: boolean; clampHeight?: boolean; showExpand?: boolean }) {
   const parent = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   useEffect(() => {
@@ -56,14 +57,31 @@ export function CodeBlock({ code, language, highlighted = true, clampHeight }: {
   return <div className="group relative rounded-lg border bg-muted/40 p-3">
     <div className="mb-1 flex items-center justify-between gap-2">
       <span className="font-mono text-[0.7rem] uppercase tracking-wide text-muted-foreground">{language || "text"}</span>
-      <Button size="icon" variant="ghost" className="size-6 opacity-0 transition-opacity group-hover:opacity-100" onClick={(event) => { event.stopPropagation(); void copy(); }} aria-label="Copy code">
-        {copied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
-      </Button>
+      <div className="flex items-center gap-1">
+        {showExpand ? (
+          <Dialog>
+            <DialogTrigger render={
+              <Button size="icon" variant="ghost" className="size-6 opacity-0 transition-opacity group-hover:opacity-100" aria-label="Expand code" onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()}>
+                <MaximizeIcon className="size-3.5" />
+              </Button>
+            } />
+            <DialogContent className="sm:max-w-4xl flex flex-col max-h-[85vh]">
+              <DialogTitle className="sr-only">{language || "Code"} snippet</DialogTitle>
+              <div className="flex-1 overflow-auto pt-6">
+                <CodeBlock code={code} language={language} highlighted clampHeight={false} showExpand={false} />
+              </div>
+            </DialogContent>
+          </Dialog>
+        ) : null}
+        <Button size="icon" variant="ghost" className="size-6 opacity-0 transition-opacity group-hover:opacity-100" onClick={(event) => { event.stopPropagation(); void copy(); }} aria-label="Copy code">
+          {copied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
+        </Button>
+      </div>
     </div>
     <div className="relative">
       {highlighted
-        ? <div ref={parent} className={cn(clampHeight ? "max-h-64 overflow-hidden" : "overflow-x-auto", showPlaceholder && "invisible")} />
-        : <pre className={`overflow-x-auto whitespace-pre-wrap break-words font-mono text-[0.85rem] leading-6 ${clampHeight ? "max-h-64 overflow-hidden" : ""}`}><code>{code}</code></pre>}
+        ? <div ref={parent} className={cn(clampHeight ? "max-h-64 overflow-auto" : "overflow-x-auto", showPlaceholder && "invisible")} />
+        : <pre className={`overflow-x-auto whitespace-pre-wrap break-words font-mono text-[0.85rem] leading-6 ${clampHeight ? "max-h-64 overflow-auto" : ""}`}><code>{code}</code></pre>}
       {showPlaceholder ? (
         <pre className={`absolute inset-0 overflow-hidden whitespace-pre-wrap break-words font-mono text-[0.85rem] leading-6 text-muted-foreground ${clampHeight ? "max-h-64" : ""}`}>{code}</pre>
       ) : null}

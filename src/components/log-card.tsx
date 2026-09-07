@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BringToFrontIcon, CopyIcon, CopyPlusIcon, ExternalLinkIcon, FolderInputIcon, ListChecksIcon, PencilIcon, SendToBackIcon, Trash2Icon } from "lucide-react";
+import { BringToFrontIcon, CopyIcon, CopyPlusIcon, ExternalLinkIcon, FolderInputIcon, ListChecksIcon, LockIcon, LockOpenIcon, PencilIcon, SendToBackIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -54,7 +54,7 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
   const [deleteOpen, setDeleteOpen] = useState(false);
   const queryClient = useQueryClient();
   const { workspace, workspaces } = useWorkspace();
-  const update = useMutation({ mutationFn: (values: { title: string | null; body: string }) => api.updateLog(workspace.id, log.id, values), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["tasks", workspace.id] }); }, onError: (error) => toast.error(error.message) });
+  const update = useMutation({ mutationFn: (values: { title?: string | null; body?: string; isLocked?: boolean }) => api.updateLog(workspace.id, log.id, values), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["tasks", workspace.id] }); }, onError: (error) => toast.error(error.message) });
   const remove = useMutation({ mutationFn: () => api.deleteLog(workspace.id, log.id), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["tasks", workspace.id] }); toast.success("Log deleted"); }, onError: (error) => toast.error(error.message) });
   const move = useMutation({ mutationFn: (targetWorkspaceId: string) => api.moveLog(workspace.id, log.id, targetWorkspaceId), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ["logs", workspace.id] }); void queryClient.invalidateQueries({ queryKey: ["tasks", workspace.id] }); toast.success("Log moved"); }, onError: (error) => toast.error(error.message) });
   const pasteFile = async (file: File) => (await api.uploadAttachment(workspace.id, log.id, file)).relativeLink;
@@ -75,7 +75,7 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
     x: drag?.x ?? 0,
     y: drag?.y ?? 0,
     onCommit: (x, y) => drag?.onMove(x, y),
-    onClick: () => setEditing(true),
+    onClick: () => { if (!log.isLocked) setEditing(true); },
   });
   
   const resizeHook = useResize({
@@ -84,9 +84,9 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
     onCommit: (w, h) => drag?.onResize?.(w, h) ?? resize?.onResize(w, h),
   });
 
-  const positionStyle = drag ? { position: "absolute" as const, left: drag.x, top: drag.y, zIndex: drag.zIndex ?? 0, ...dragPos.style } : undefined;
+  const positionStyle = drag ? { position: "absolute" as const, left: drag.x, top: drag.y, zIndex: drag.zIndex ?? 0, ...(log.isLocked ? {} : dragPos.style) } : undefined;
 
-  const resolvedStyle: CSSProperties = { ...resizeHook.style };
+  const resolvedStyle: CSSProperties = { ...(log.isLocked ? { width: resizeHook.style?.width, height: resizeHook.style?.height } : resizeHook.style) };
   if (gridMode && !resizeHook.isResizing) {
     delete resolvedStyle.width;
   }
@@ -109,7 +109,7 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
   }, [editing]);
 
   const router = useRouter();
-  const showResize = drag != null || resize != null;
+  const showResize = (drag != null || resize != null) && !log.isLocked;
 
   if (editing) {
     const editCardProps = drag
@@ -119,27 +119,29 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
   }
 
   const cardProps = drag
-    ? { className: `cursor-grab touch-none select-none gap-1 transition-colors dark:hover:bg-[color-mix(in_oklab,var(--accent)_35%,var(--card))] flex flex-col z-0 ${dragPos.isDragging ? "shadow-sm" : ""}`, style: { ...positionStyle, ...resolvedStyle }, "data-log-id": log.id, ...dragPos.handlers }
-    : { className: `relative mb-4 cursor-pointer break-inside-avoid gap-1 transition-colors dark:hover:bg-[color-mix(in_oklab,var(--accent)_35%,var(--card))] w-full z-0 flex flex-col`, style: resolvedStyle, onClick: clickToEdit ? () => setEditing(true) : () => router.push(`/d/${log.day}`) };
+    ? { className: `${log.isLocked ? "" : "cursor-grab touch-none select-none"} gap-1 transition-colors dark:hover:bg-[color-mix(in_oklab,var(--accent)_35%,var(--card))] flex flex-col z-0 ${dragPos.isDragging ? "shadow-sm" : ""}`, style: { ...positionStyle, ...resolvedStyle }, "data-log-id": log.id, ...(log.isLocked ? {} : dragPos.handlers) }
+    : { className: `relative mb-4 ${log.isLocked && clickToEdit ? "" : "cursor-pointer"} break-inside-avoid gap-1 transition-colors dark:hover:bg-[color-mix(in_oklab,var(--accent)_35%,var(--card))] w-full z-0 flex flex-col`, style: resolvedStyle, onClick: clickToEdit ? (log.isLocked ? undefined : () => setEditing(true)) : () => router.push(`/d/${log.day}`) };
   
-  const isResized = fixedHeight != null || (showResize && ((drag?.height ?? resize?.height) != null || resizeHook.style?.height != null));
+  const isResized = fixedHeight != null || (((drag?.height ?? resize?.height) != null || resizeHook.style?.height != null));
 
   return <><ContextMenu><ContextMenuTrigger render={<Card {...cardProps} />}>
     {taskCount > 0 ? <Badge variant="secondary" className="absolute right-2 top-2 z-10 gap-1"><ListChecksIcon className="size-3" />{taskCount}</Badge> : null}
     {log.title ? <CardHeader className="shrink-0 pb-0"><CardTitle>{log.title}</CardTitle></CardHeader> : null}
-    <CardContent className={`min-h-0 ${log.title ? "pt-0" : ""} ${isResized ? "flex-1 flex flex-col" : ""}`}><CardBody log={log} workspaceId={workspace.id} tasks={tasks} onToggleTask={onToggleTask} onDeleteAttachment={(attachmentId, markdown) => deleteAttachment.mutate({ attachmentId, markdown })} isResized={isResized} /></CardContent>
+    <CardContent className={`min-h-0 ${log.title ? "pt-0" : ""} ${isResized ? "flex-1 flex flex-col" : ""}`}><CardBody log={log} workspaceId={workspace.id} tasks={tasks} onToggleTask={log.isLocked ? undefined : onToggleTask} onDeleteAttachment={log.isLocked ? undefined : (attachmentId, markdown) => deleteAttachment.mutate({ attachmentId, markdown })} isResized={isResized} /></CardContent>
     {showResize ? <ResizeHandle handlers={resizeHook.handlers} /> : null}
   </ContextMenuTrigger><ContextMenuContent><ContextMenuGroup>
-    <ContextMenuItem onClick={() => setEditing(true)}><PencilIcon />Edit</ContextMenuItem>
+    {!log.isLocked && <ContextMenuItem onClick={() => setEditing(true)}><PencilIcon />Edit</ContextMenuItem>}
     <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(log.body); toast.success("Markdown copied"); }}><CopyIcon />Copy as markdown</ContextMenuItem>
     <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(`${location.origin}/d/${log.day}`); toast.success("Link copied"); }}><ExternalLinkIcon />Copy link</ContextMenuItem>
     {workspaces.length > 1 ? <ContextMenuSub><ContextMenuSubTrigger><FolderInputIcon />Move to workspace</ContextMenuSubTrigger><ContextMenuSubContent>{workspaces.filter((candidate) => candidate.id !== workspace.id).map((candidate) => <ContextMenuItem key={candidate.id} onClick={() => move.mutate(candidate.id)}>{candidate.name}</ContextMenuItem>)}</ContextMenuSubContent></ContextMenuSub> : null}
   </ContextMenuGroup>
-  {(drag?.onBringToFront || drag?.onSendToBack || onDuplicate) ? <><ContextMenuSeparator /><ContextMenuGroup>
+  <ContextMenuSeparator />
+  <ContextMenuGroup>
     {drag?.onBringToFront ? <ContextMenuItem onClick={drag.onBringToFront}><BringToFrontIcon />Bring to front</ContextMenuItem> : null}
     {drag?.onSendToBack ? <ContextMenuItem onClick={drag.onSendToBack}><SendToBackIcon />Send to back</ContextMenuItem> : null}
     {onDuplicate ? <ContextMenuItem onClick={onDuplicate}><CopyPlusIcon />Duplicate</ContextMenuItem> : null}
-  </ContextMenuGroup></> : null}
+    <ContextMenuItem onClick={() => update.mutate({ isLocked: !log.isLocked })}>{log.isLocked ? <><LockOpenIcon />Unlock</> : <><LockIcon />Lock</>}</ContextMenuItem>
+  </ContextMenuGroup>
   <ContextMenuSeparator />
   <ContextMenuGroup>
     <ContextMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}><Trash2Icon />Delete</ContextMenuItem>
