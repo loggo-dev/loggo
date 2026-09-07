@@ -26,7 +26,7 @@
     {
       "binding": "DB",
       "database_name": "loggo-demo",
-      "database_id": "a067e14b-211a-41fd-ad38-b41e77f863d3",
+      "database_id": "6cac305a-6f68-4c9a-a599-2a97effa94e8",
       "migrations_dir": "./src/server/db/migrations"
     }
   ],
