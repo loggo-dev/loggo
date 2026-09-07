@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.0](https://github.com/loggo-dev/loggo/compare/v1.2.7...v1.3.0) (2026-09-07)
+
+
+### Features
+
+* enhance due date handling in Markdown editor with visual indicators ([ef5c8c6](https://github.com/loggo-dev/loggo/commit/ef5c8c601e3756a156740061d026341f6248096e))
+* keep attachments as atomic widgets in editor ([92975ae](https://github.com/loggo-dev/loggo/commit/92975ae2945ebe04ada3f175029d01143316116e))
+
+
+### Bug Fixes
+
+* add widgets for YouTube videos, code blocks, tables, and attachments in the editor ([1b9cd10](https://github.com/loggo-dev/loggo/commit/1b9cd10f54d264cab84fa0a4e29fdd047a626266))
+* improve layout and styling in command and search palette components ([e29690b](https://github.com/loggo-dev/loggo/commit/e29690b95d4f8de3543cd2855d5997a0d3983392))
+* update checkbox implementation to use button for better accessibility and styling ([35a0c30](https://github.com/loggo-dev/loggo/commit/35a0c30b68bb43ef6e639997c22ed0c3d4c678aa))
+
 ## [1.2.7](https://github.com/loggo-dev/loggo/compare/v1.2.6...v1.2.7) (2026-09-07)
 
 
