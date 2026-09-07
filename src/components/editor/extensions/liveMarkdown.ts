@@ -125,7 +125,7 @@ function build(view: EditorView): DecorationSet {
             const urlNode = node.getChild("URL");
             const isAttachment = urlNode && state.sliceDoc(urlNode.from, urlNode.to).includes("./_files/");
 
-            if (isAttachment && !selectionOverlaps(state, node.from, node.to)) {
+            if (isAttachment) {
               // Replace the whole markdown link with an attachment widget card
               const url = urlNode ? state.sliceDoc(urlNode.from, urlNode.to) : "";
               const title = state.sliceDoc(openBracket.to, closeBracket.from) || "Attachment";
@@ -138,7 +138,7 @@ function build(view: EditorView): DecorationSet {
                 widget: new AttachmentWidget(title, ext, isImage, url)
               }));
             } else {
-              span(openBracket.to, closeBracket.from, isAttachment ? Decoration.mark({ class: "cm-md-attachment" }) : linkTextMark);
+              span(openBracket.to, closeBracket.from, linkTextMark);
               if (!selectionOverlaps(state, node.from, node.to)) {
                 if (ref.name === "Image") {
                   const imgMark = node.getChild("ImageMark");
