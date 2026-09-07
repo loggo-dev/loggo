@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.5](https://github.com/loggo-dev/loggo/compare/v1.2.4...v1.2.5) (2026-09-07)
+
+
+### Bug Fixes
+
+* add isLocked property to logs and related components for enhanced log management ([16eb17f](https://github.com/loggo-dev/loggo/commit/16eb17f530bf72e5806a97fd6d51e63bc7ffa69f))
+
 ## [1.2.4](https://github.com/loggo-dev/loggo/compare/v1.2.3...v1.2.4) (2026-09-07)
 
 
