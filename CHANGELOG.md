@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.4](https://github.com/loggo-dev/loggo/compare/v1.2.3...v1.2.4) (2026-09-07)
+
+
+### Bug Fixes
+
+* include database migrations in Dockerfile for runtime accessibility ([185eec6](https://github.com/loggo-dev/loggo/commit/185eec6d36a091f5a1a46e42f91f13c326ded168))
+
 ## [1.2.3](https://github.com/loggo-dev/loggo/compare/v1.2.2...v1.2.3) (2026-09-06)
 
 
