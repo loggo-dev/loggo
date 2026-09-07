@@ -10,7 +10,7 @@ export type TableData = {
 export function TableWidgetComponent({ data }: { data: TableData }) {
   // We use our shadcn table components which look great
   return (
-    <div className="my-4 w-full overflow-y-auto rounded-md border" contentEditable="false" style={{ userSelect: "none" }} onMouseDown={(e) => e.preventDefault()} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+    <div className="my-4 w-full overflow-y-auto rounded-md border" contentEditable="false" style={{ userSelect: "none" }}>
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">

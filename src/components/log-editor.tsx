@@ -15,7 +15,7 @@ import { useWorkspace } from "@/components/workspace-provider";
 
 const AUTOSAVE_DELAY = 800;
 
-export function LogEditor({ initialTitle = "", initialBody = "", tags = [], saving, onSave, onSubmit, onCancel, onPasteFile, autoSave = false, titleClassName = "text-base md:text-base font-heading font-medium leading-snug", showTitle = true, readOnly = false, showFooter = true, className }: { initialTitle?: string; initialBody?: string; tags?: string[]; saving?: boolean; onSave: (values: { title: string | null; body: string }) => void; onSubmit?: (values: { title: string | null; body: string }) => void; onCancel?: () => void; onPasteFile?: (file: File, values: { title: string | null; body: string }) => Promise<string>; autoSave?: boolean; titleClassName?: string; showTitle?: boolean; readOnly?: boolean; showFooter?: boolean; className?: string }) {
+export function LogEditor({ initialTitle = "", initialBody = "", tags = [], saving, onSave, onSubmit, onCancel, onPasteFile, autoSave = false, titleClassName = "text-base md:text-base font-heading font-medium leading-snug", showTitle = true, readOnly = false, showFooter = true, className, day }: { initialTitle?: string; initialBody?: string; tags?: string[]; saving?: boolean; onSave: (values: { title: string | null; body: string }) => void; onSubmit?: (values: { title: string | null; body: string }) => void; onCancel?: () => void; onPasteFile?: (file: File, values: { title: string | null; body: string }) => Promise<string>; autoSave?: boolean; titleClassName?: string; showTitle?: boolean; readOnly?: boolean; showFooter?: boolean; className?: string; day?: string }) {
   const { workspace } = useWorkspace();
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
@@ -175,7 +175,7 @@ export function LogEditor({ initialTitle = "", initialBody = "", tags = [], savi
         inside the editor, so text selection/click-to-place-cursor keeps
         working when the card is draggable. */}
     <div className={`flex-1 min-h-0 flex flex-col text-sm ${className || ""}`} onPointerDownCapture={(event) => { if (!readOnly) event.stopPropagation(); }}>
-      <MarkdownEditor ref={editor} value={body} onChange={setBody} commands={commands} extensions={extensions} className="flex-1 min-h-0 [&_.cm-editor]:h-full [&_.cm-scroller]:overflow-y-auto" workspaceId={workspace.id} readOnly={readOnly} />
+      <MarkdownEditor ref={editor} value={body} onChange={setBody} commands={commands} extensions={extensions} className="flex-1 min-h-0 [&_.cm-editor]:h-full [&_.cm-scroller]:overflow-y-auto" workspaceId={workspace.id} day={day} readOnly={readOnly} />
     </div>
     {showFooter && !autoSave ? <div className="flex items-center justify-end gap-2 pt-2 shrink-0">
       {onCancel ? <Button variant="ghost" onClick={onCancel}>Cancel</Button> : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { BringToFrontIcon, CopyIcon, CopyPlusIcon, ExternalLinkIcon, FolderInputIcon, ListChecksIcon, LockIcon, LockOpenIcon, PencilIcon, SendToBackIcon, Trash2Icon } from "lucide-react";
+import { BringToFrontIcon, CopyIcon, CopyPlusIcon, ExternalLinkIcon, FolderInputIcon, ListChecksIcon, LockIcon, LockOpenIcon, SendToBackIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { toast } from "sonner";
 
@@ -123,6 +123,7 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
             showTitle={false} 
             showFooter={false} 
             readOnly={!editing || log.isLocked}
+            day={log.day}
             className="[&_.cm-editor]:!h-auto [&_.cm-editor]:!min-h-full [&_.cm-scroller]:!overflow-y-visible"
           />
           </ScrollArea>
@@ -131,7 +132,6 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuGroup>
-          {!log.isLocked && <ContextMenuItem onClick={() => setEditing(true)}><PencilIcon />Edit</ContextMenuItem>}
           <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(log.body); toast.success("Markdown copied"); }}><CopyIcon />Copy as markdown</ContextMenuItem>
           <ContextMenuItem onClick={() => { void navigator.clipboard.writeText(`${location.origin}/d/${log.day}`); toast.success("Link copied"); }}><ExternalLinkIcon />Copy link</ContextMenuItem>
           {workspaces.length > 1 ? <ContextMenuSub><ContextMenuSubTrigger><FolderInputIcon />Move to workspace</ContextMenuSubTrigger><ContextMenuSubContent>{workspaces.filter((candidate) => candidate.id !== workspace.id).map((candidate) => <ContextMenuItem key={candidate.id} onClick={() => move.mutate(candidate.id)}>{candidate.name}</ContextMenuItem>)}</ContextMenuSubContent></ContextMenuSub> : null}

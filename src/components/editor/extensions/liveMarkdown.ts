@@ -5,7 +5,8 @@ import { taskCheckboxDecoration } from "./checkboxes";
 import { AttachmentWidget } from "./attachmentWidget";
 import { CodeBlockWidget } from "./codeBlockWidget";
 import { YoutubeWidget } from "./youtubeWidget";
-import { TableWidget } from "./tableWidget";
+import { resolveDueDate } from "@/server/domain/parse-markdown";
+
 
 // Regex-per-line is what the previous implementation used; this rebuilds the
 // same live-preview effect on top of the Lezer syntax tree instead, so
@@ -66,7 +67,7 @@ const HEADING_LEVEL: Record<string, number> = {
   ATXHeading6: 6,
 };
 
-function build(view: EditorView, workspaceId?: string): DecorationSet {
+function build(view: EditorView, workspaceId?: string, day?: string): DecorationSet {
   const state = view.state;
   const entries: { from: number; to: number; deco: Decoration }[] = [];
   const atLine = (pos: number, deco: Decoration) => entries.push({ from: pos, to: pos, deco });
@@ -251,6 +252,7 @@ function build(view: EditorView, workspaceId?: string): DecorationSet {
           case "TaskMarker": {
             const line = state.doc.lineAt(ref.from);
             
+            const checked = state.sliceDoc(ref.from + 1, ref.from + 2).toLowerCase() === "x";
             const lineText = line.text;
             const taskTextStart = ref.to - line.from;
             const taskText = lineText.slice(taskTextStart);
@@ -261,7 +263,17 @@ function build(view: EditorView, workspaceId?: string): DecorationSet {
               const textGlobalFrom = bangGlobalFrom + 1;
               const matchGlobalTo = textGlobalFrom + dueMatch[2].length;
               
-              span(textGlobalFrom, matchGlobalTo, Decoration.mark({ class: "cm-md-due-date" }));
+              let classes = "cm-md-due-date";
+              if (checked) {
+                classes += " cm-md-due-date-done";
+              } else if (day) {
+                const resolved = resolveDueDate(dueMatch[2], day);
+                if (resolved && new Date(`${resolved}T00:00:00`) < new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00')) {
+                  classes += " cm-md-due-date-overdue";
+                }
+              }
+              
+              span(textGlobalFrom, matchGlobalTo, Decoration.mark({ class: classes }));
               if (!selectionOverlaps(view, bangGlobalFrom, matchGlobalTo)) {
                 span(bangGlobalFrom, textGlobalFrom, hide);
               }
@@ -275,7 +287,6 @@ function build(view: EditorView, workspaceId?: string): DecorationSet {
               span(ref.from, ref.to, taskMarkerRawMark);
               break;
             }
-            const checked = state.sliceDoc(ref.from + 1, ref.from + 2).toLowerCase() === "x";
             span(ref.from, ref.to, taskCheckboxDecoration(ref.from, checked));
             if (checked) {
               span(ref.to, line.to, Decoration.mark({ class: "cm-md-task-checked" }));
@@ -299,14 +310,14 @@ function build(view: EditorView, workspaceId?: string): DecorationSet {
   );
 }
 
-export const createLiveMarkdown = (workspaceId?: string) => ViewPlugin.fromClass(
+export const createLiveMarkdown = (workspaceId?: string, day?: string) => ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
     constructor(view: EditorView) {
-      this.decorations = build(view, workspaceId);
+      this.decorations = build(view, workspaceId, day);
     }
     update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged || update.selectionSet) this.decorations = build(update.view, workspaceId);
+      if (update.docChanged || update.viewportChanged || update.selectionSet) this.decorations = build(update.view, workspaceId, day);
     }
   },
   { decorations: (plugin) => plugin.decorations },

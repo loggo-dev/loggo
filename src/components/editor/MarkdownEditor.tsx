@@ -35,12 +35,13 @@ export type MarkdownEditorProps = {
   extensions?: Extension[];
   className?: string;
   workspaceId?: string;
+  day?: string;
 };
 
 type SlashMenuState = { range: SlashRange; query: string; anchor: { left: number; top: number; bottom: number } } | null;
 
 export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(function MarkdownEditor(
-  { value, onChange, placeholder, readOnly = false, commands, extensions, className, workspaceId },
+  { value, onChange, placeholder, readOnly = false, commands, extensions, className, workspaceId, day },
   ref,
 ) {
   const parent = useRef<HTMLDivElement>(null);
@@ -210,7 +211,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           baseSetup,
           markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: true }),
           codeHighlighting,
-          createLiveMarkdown(workspaceId),
+          createLiveMarkdown(workspaceId, day),
           tableDecorationsField,
           linkClickExtension,
           markdownEditorKeymap,
@@ -270,12 +271,25 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
     instance.dispatch({ changes: { from: 0, to: instance.state.doc.length, insert: value } });
   }, [value]);
 
+  // The editor's own DOM (.cm-content) is only as tall as its text, so a
+  // card that's been resized taller than its content leaves blank space
+  // below the last line that isn't part of any CodeMirror element - clicks
+  // there would otherwise do nothing. Catch those and drop the caret at the
+  // end of the document, like clicking below text in a plain textarea.
+  const handleBelowContentMouseDown = (event: React.MouseEvent) => {
+    if ((event.target as Element).closest?.(".cm-content")) return;
+    const instance = view.current;
+    if (!instance) return;
+    instance.dispatch({ selection: { anchor: instance.state.doc.length } });
+    instance.focus();
+  };
+
   return (
     <>
       {/* No border/background/min-height by default - the editor should sit
           flush inside whatever container it's placed in (e.g. a card that
           already provides its own padding), not read as a separate box. */}
-      <div ref={parent} className={className} />
+      <div ref={parent} className={className} onMouseDownCapture={handleBelowContentMouseDown} />
       <SlashCommandMenu
         commands={filtered}
         highlightedIndex={highlightedIndex}

@@ -19,7 +19,7 @@ export class TableWidget extends WidgetType {
     return other.dataStr === this.dataStr;
   }
 
-  toDOM(view: EditorView) {
+  toDOM(_view: EditorView) {
     const container = document.createElement("span");
     container.className = "cm-md-table-widget block";
     
@@ -29,7 +29,7 @@ export class TableWidget extends WidgetType {
     return container;
   }
 
-  destroy(dom: HTMLElement) {
+  destroy(_dom: HTMLElement) {
     if (this.root) {
       const root = this.root;
       setTimeout(() => root.unmount(), 0);
@@ -37,9 +37,7 @@ export class TableWidget extends WidgetType {
   }
 
   ignoreEvent(event: Event) {
-    // Ignore all events except those we explicitly want CodeMirror to handle.
-    // This allows selecting text inside the table without moving the CodeMirror cursor,
-    // though the table is rendered with userSelect="none" right now so they just click it to edit.
+    if (event.type === "mousedown") return false;
     return true; 
   }
 }
@@ -53,7 +51,11 @@ export const tableDecorationsField = StateField.define<DecorationSet>({
     return buildTableDecorations(state);
   },
   update(decorations, tr) {
-    if (tr.docChanged || tr.selection) {
+    // Toggling a card between its read-only display and edit mode
+    // reconfigures the readOnly compartment (see MarkdownEditor.tsx) without
+    // a doc change or a selection-carrying transaction, so that flip must be
+    // checked explicitly or the table stays stuck as a rendered widget.
+    if (tr.docChanged || tr.selection || tr.startState.readOnly !== tr.state.readOnly) {
       return buildTableDecorations(tr.state);
     }
     return decorations;

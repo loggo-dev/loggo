@@ -109,14 +109,28 @@ export const markdownEditorTheme = EditorView.theme({
 
   ".cm-md-due-date": {
     display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
     padding: "0 6px",
-    borderRadius: "var(--radius-sm)",
-    backgroundColor: "var(--secondary)",
-    color: "var(--secondary-foreground)",
-    fontSize: "0.85em",
-    fontWeight: "500",
-    marginLeft: "4px",
+    borderRadius: "9999px",
+    border: "1px solid var(--border)",
+    backgroundColor: "transparent",
+    color: "var(--muted-foreground)",
+    fontSize: "10px",
+    fontWeight: "600",
+    height: "16px",
+    marginLeft: "8px",
     verticalAlign: "middle",
+    textTransform: "capitalize"
+  },
+  ".cm-md-due-date-done": {
+    borderColor: "transparent",
+    backgroundColor: "var(--muted)"
+  },
+  ".cm-md-due-date-overdue": {
+    borderColor: "hsl(var(--destructive) / 0.5)",
+    color: "hsl(var(--destructive))",
+    backgroundColor: "hsl(var(--destructive) / 0.1)"
   },
 
   ".cm-tooltip.cm-tooltip-autocomplete": {
