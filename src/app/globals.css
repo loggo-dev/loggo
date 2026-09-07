@@ -134,28 +134,6 @@
 @layer components {
   .page-shell { @apply mx-auto flex w-full max-w-[92rem] flex-col gap-6 px-5 py-7 md:px-8 md:py-10; }
   .page-heading { @apply text-2xl font-semibold tracking-tight; }
-  .markdown { @apply text-sm leading-7 text-foreground; }
-  .markdown h1 { @apply mt-5 mb-2 text-2xl font-semibold; }
-  .markdown h2 { @apply mt-5 mb-2 text-xl font-semibold; }
-  .markdown h3 { @apply mt-4 mb-1 text-lg font-medium; }
-  .markdown p { @apply my-2; }
-  .markdown ul { @apply my-2 list-disc pl-5; }
-  .markdown ol { @apply my-2 list-decimal pl-5; }
-  /* Task list items pull 26px further left than the default 20px marker
-     gutter to line their checkbox up with where the bullet would sit
-     (see the `<li>` in markdown-preview.tsx) - without matching that extra
-     6px here, the hover highlight's rounded left edge overhangs the list's
-     own box and gets clipped by any scroll-clipped ancestor (e.g. a log
-     card's ScrollArea). */
-  .markdown ul.contains-task-list { @apply pl-[26px]; }
-  .markdown code { @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.9em]; }
-  .markdown pre { @apply my-3 overflow-x-auto rounded-lg border bg-muted/40 p-3; }
-  .markdown pre code { @apply bg-transparent p-0; }
-  .markdown a { @apply underline underline-offset-4; }
-  .markdown blockquote { @apply my-3 border-l-2 pl-4 text-muted-foreground; }
-  .markdown.markdown-compact > :where(h1, h2, h3, p, ul, ol, pre, blockquote, div) { @apply my-0; }
-  .markdown.markdown-compact > ol,
-  .markdown.markdown-compact > ul:not(.contains-task-list) { @apply list-inside pl-0; }
 }
 
 @layer base {

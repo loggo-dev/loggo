@@ -3,14 +3,18 @@ import type { EditorState } from "@codemirror/state";
 import { Decoration, EditorView, ViewPlugin, WidgetType, type DecorationSet, type ViewUpdate } from "@codemirror/view";
 import { taskCheckboxDecoration } from "./checkboxes";
 import { AttachmentWidget } from "./attachmentWidget";
+import { CodeBlockWidget } from "./codeBlockWidget";
+import { YoutubeWidget } from "./youtubeWidget";
+import { TableWidget } from "./tableWidget";
 
 // Regex-per-line is what the previous implementation used; this rebuilds the
 // same live-preview effect on top of the Lezer syntax tree instead, so
 // nesting (`**_bold italic_**`), fenced-code language info, and GFM tasks are
 // read from real parser nodes rather than re-derived with ad-hoc patterns.
 
-function selectionOverlaps(state: EditorState, from: number, to: number) {
-  return state.selection.ranges.some((range) => range.from <= to && range.to >= from);
+function selectionOverlaps(view: EditorView, from: number, to: number) {
+  if (view.state.readOnly || !view.hasFocus) return false;
+  return view.state.selection.ranges.some((range) => range.from <= to && range.to >= from);
 }
 
 // Extends a "hide this marker" range past any trailing spaces (e.g. the
@@ -62,7 +66,7 @@ const HEADING_LEVEL: Record<string, number> = {
   ATXHeading6: 6,
 };
 
-function build(view: EditorView): DecorationSet {
+function build(view: EditorView, workspaceId?: string): DecorationSet {
   const state = view.state;
   const entries: { from: number; to: number; deco: Decoration }[] = [];
   const atLine = (pos: number, deco: Decoration) => entries.push({ from: pos, to: pos, deco });
@@ -81,7 +85,7 @@ function build(view: EditorView): DecorationSet {
           const line = state.doc.lineAt(node.from);
           atLine(line.from, headingLine(level));
           const mark = node.getChild("HeaderMark");
-          if (mark && !selectionOverlaps(state, line.from, line.to)) {
+          if (mark && !selectionOverlaps(view, line.from, line.to)) {
             span(mark.from, hideThroughSpace(state, mark.from, mark.to, node.to), hide);
           }
           return;
@@ -96,7 +100,7 @@ function build(view: EditorView): DecorationSet {
             const close = marks[marks.length - 1];
             if (!open || !close || open === close) break;
             span(open.to, close.from, ref.name === "StrongEmphasis" ? strongMark : emphasisMark);
-            if (!selectionOverlaps(state, node.from, node.to)) {
+            if (!selectionOverlaps(view, node.from, node.to)) {
               span(open.from, open.to, hide);
               span(close.from, close.to, hide);
             }
@@ -108,26 +112,50 @@ function build(view: EditorView): DecorationSet {
             const [open, close] = marks;
             if (!open || !close) break;
             span(open.to, close.from, inlineCodeMark);
-            if (!selectionOverlaps(state, node.from, node.to)) {
+            if (!selectionOverlaps(view, node.from, node.to)) {
               span(open.from, open.to, hide);
               span(close.from, close.to, hide);
+            }
+            break;
+          }
+
+          case "URL": {
+            if (ref.node.parent?.name === "Link" || ref.node.parent?.name === "Image") break;
+            const url = state.sliceDoc(ref.from, ref.to);
+            const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+            if (ytMatch && !selectionOverlaps(view, ref.from, ref.to)) {
+              span(ref.from, ref.to, Decoration.replace({
+                widget: new YoutubeWidget(ytMatch[1], "YouTube Video")
+              }));
+              return false; // Skip children
+            } else {
+              span(ref.from, ref.to, linkTextMark);
             }
             break;
           }
           case "Image":
           case "Link": {
             const node = ref.node;
+            const urlNode = node.getChild("URL");
+            const url = urlNode ? state.sliceDoc(urlNode.from, urlNode.to) : "";
+            
+            const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+            if (ytMatch && !selectionOverlaps(view, node.from, node.to)) {
+              span(node.from, node.to, Decoration.replace({
+                widget: new YoutubeWidget(ytMatch[1], "YouTube Video")
+              }));
+              return false; // Skip children
+            }
+
             const marks = node.getChildren("LinkMark");
             const openBracket = marks[0];
             const closeBracket = marks[1];
             if (!openBracket || !closeBracket) break;
 
-            const urlNode = node.getChild("URL");
-            const isAttachment = urlNode && state.sliceDoc(urlNode.from, urlNode.to).includes("./_files/");
+            const isAttachment = url.includes("./_files/");
 
             if (isAttachment) {
               // Replace the whole markdown link with an attachment widget card
-              const url = urlNode ? state.sliceDoc(urlNode.from, urlNode.to) : "";
               const title = state.sliceDoc(openBracket.to, closeBracket.from) || "Attachment";
               const isImage = ref.name === "Image";
               
@@ -135,11 +163,12 @@ function build(view: EditorView): DecorationSet {
               const ext = filename.split('.').pop()?.toUpperCase() || 'FILE';
 
               span(node.from, node.to, Decoration.replace({
-                widget: new AttachmentWidget(title, ext, isImage, url)
+                widget: new AttachmentWidget(title, ext, isImage, url, node.from, node.to, workspaceId)
               }));
+              return false; // Skip children
             } else {
               span(openBracket.to, closeBracket.from, linkTextMark);
-              if (!selectionOverlaps(state, node.from, node.to)) {
+              if (!selectionOverlaps(view, node.from, node.to)) {
                 if (ref.name === "Image") {
                   const imgMark = node.getChild("ImageMark");
                   if (imgMark) span(imgMark.from, openBracket.to, hide);
@@ -160,7 +189,7 @@ function build(view: EditorView): DecorationSet {
           }
           case "QuoteMark": {
             const line = state.doc.lineAt(ref.from);
-            if (!selectionOverlaps(state, line.from, line.to)) {
+            if (!selectionOverlaps(view, line.from, line.to)) {
               span(ref.from, hideThroughSpace(state, ref.from, ref.to, line.to), hide);
             }
             break;
@@ -175,35 +204,74 @@ function build(view: EditorView): DecorationSet {
             const info = node.getChild("CodeInfo");
             const openMark = marks[0];
             const closeMark = marks.length > 1 ? marks[marks.length - 1] : null;
+            
+            let codeText = "";
             if (openMark) {
               const openLine = state.doc.lineAt(openMark.from);
-              if (!selectionOverlaps(state, openLine.from, openLine.to)) {
-                span(openMark.from, info ? info.to : openMark.to, hide);
+              const codeStart = openLine.to + 1;
+              const codeEnd = closeMark ? closeMark.from - 1 : node.to;
+              if (codeEnd > codeStart) {
+                codeText = state.doc.sliceString(codeStart, codeEnd);
+              }
+            }
+
+            if (openMark) {
+              const openLine = state.doc.lineAt(openMark.from);
+              if (!selectionOverlaps(view, openLine.from, openLine.to)) {
+                const lang = info ? state.sliceDoc(info.from, info.to) : "";
+                span(openMark.from, info ? info.to : openMark.to, Decoration.replace({
+                  widget: new CodeBlockWidget(lang, codeText)
+                }));
               }
             }
             if (closeMark) {
               const closeLine = state.doc.lineAt(closeMark.from);
-              if (!selectionOverlaps(state, closeLine.from, closeLine.to)) span(closeMark.from, closeMark.to, hide);
+              if (!selectionOverlaps(view, closeLine.from, closeLine.to)) span(closeMark.from, closeMark.to, hide);
             }
             break;
           }
           case "HorizontalRule": {
             const line = state.doc.lineAt(ref.from);
             atLine(line.from, hrLine);
-            if (!selectionOverlaps(state, line.from, line.to)) span(ref.from, ref.to, hide);
+            if (!selectionOverlaps(view, line.from, line.to)) span(ref.from, ref.to, hide);
             break;
           }
           case "ListMark": {
+            const parent = ref.node.parent;
+            if (parent?.name === "ListItem" && parent.getChild("Task")) {
+              const line = state.doc.lineAt(ref.from);
+              if (!selectionOverlaps(view, line.from, line.to)) {
+                span(ref.from, hideThroughSpace(state, ref.from, ref.to, line.to), hide);
+                break;
+              }
+            }
             span(ref.from, ref.to, listMarkerMark);
             break;
           }
           case "TaskMarker": {
+            const line = state.doc.lineAt(ref.from);
+            
+            const lineText = line.text;
+            const taskTextStart = ref.to - line.from;
+            const taskText = lineText.slice(taskTextStart);
+            const dueMatch = taskText.match(/(?:^|\s)(!)([\p{L}\d-]+)\s*$/u);
+            if (dueMatch) {
+              const bangIndex = taskTextStart + dueMatch.index! + dueMatch[0].lastIndexOf("!");
+              const bangGlobalFrom = line.from + bangIndex;
+              const textGlobalFrom = bangGlobalFrom + 1;
+              const matchGlobalTo = textGlobalFrom + dueMatch[2].length;
+              
+              span(textGlobalFrom, matchGlobalTo, Decoration.mark({ class: "cm-md-due-date" }));
+              if (!selectionOverlaps(view, bangGlobalFrom, matchGlobalTo)) {
+                span(bangGlobalFrom, textGlobalFrom, hide);
+              }
+            }
+
             // Keep the raw "[ ]"/"[x]" editable while the cursor is on this
             // line; render the interactive checkbox everywhere else. The raw
             // text otherwise falls through to Lezer's default "atom" style,
             // a light-mode-only blue that's unreadable in dark mode.
-            const line = state.doc.lineAt(ref.from);
-            if (selectionOverlaps(state, line.from, line.to)) {
+            if (selectionOverlaps(view, line.from, line.to)) {
               span(ref.from, ref.to, taskMarkerRawMark);
               break;
             }
@@ -231,14 +299,14 @@ function build(view: EditorView): DecorationSet {
   );
 }
 
-export const liveMarkdown = ViewPlugin.fromClass(
+export const createLiveMarkdown = (workspaceId?: string) => ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
     constructor(view: EditorView) {
-      this.decorations = build(view);
+      this.decorations = build(view, workspaceId);
     }
     update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged || update.selectionSet) this.decorations = build(update.view);
+      if (update.docChanged || update.viewportChanged || update.selectionSet) this.decorations = build(update.view, workspaceId);
     }
   },
   { decorations: (plugin) => plugin.decorations },

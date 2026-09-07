@@ -15,8 +15,22 @@ export class TaskCheckboxWidget extends WidgetType {
     return other.checked === this.checked && other.markerFrom === this.markerFrom;
   }
 
+  updateDOM(dom: HTMLElement, view: EditorView) {
+    if ((dom as any).checkedState === this.checked) {
+      dom.onclick = (event) => {
+        event.preventDefault();
+        view.dispatch({
+          changes: { from: this.markerFrom + 1, to: this.markerFrom + 2, insert: this.checked ? " " : "x" },
+        });
+      };
+      return true;
+    }
+    return false;
+  }
+
   toDOM(view: EditorView) {
     const box = document.createElement("button");
+    (box as any).checkedState = this.checked;
     box.type = "button";
     box.className = "cm-md-task-checkbox relative inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-input transition-colors outline-none align-middle cursor-pointer mx-1.5" + (this.checked ? " bg-primary border-primary text-primary-foreground" : " dark:bg-input/30");
     box.setAttribute("aria-label", this.checked ? "Mark task as not done" : "Mark task as done");

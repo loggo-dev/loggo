@@ -214,8 +214,8 @@ export function CanvasViewport({ children }: { children: ReactNode }) {
 
       // If we are panning, check if we're hovering a scrollable element
       if (e.target instanceof Element) {
-        const scrollable = e.target.closest('.overflow-y-auto, .overflow-auto, .overflow-x-auto, [data-slot="scroll-area-viewport"], .cm-scroller');
-        if (scrollable) {
+        let scrollable = e.target.closest('.overflow-y-auto, .overflow-auto, .overflow-x-auto, [data-slot="scroll-area-viewport"], .cm-scroller');
+        while (scrollable) {
           // A two-finger trackpad pan is rarely perfectly axis-aligned, so a
           // mostly-vertical pan can carry a little incidental deltaX. That's
           // fine for most scrollable elements (deltaX only matters once
@@ -250,6 +250,7 @@ export function CanvasViewport({ children }: { children: ReactNode }) {
             // Let the browser scroll the element natively, don't pan the canvas
             return;
           }
+          scrollable = scrollable.parentElement?.closest('.overflow-y-auto, .overflow-auto, .overflow-x-auto, [data-slot="scroll-area-viewport"], .cm-scroller') || null;
         }
       }
 

@@ -1,17 +1,18 @@
 "use client";
 
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-import { EditorState, type Extension } from "@codemirror/state";
+import { Compartment, EditorState, type Extension } from "@codemirror/state";
 import { EditorView, placeholder as placeholderExtension, keymap } from "@codemirror/view";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { defaultEditorCommands, filterEditorCommands, type EditorCommand } from "./commands/editorCommands";
 import { baseSetup } from "./extensions/baseSetup";
 import { linkClickExtension } from "./extensions/links";
-import { liveMarkdown } from "./extensions/liveMarkdown";
+import { createLiveMarkdown } from "./extensions/liveMarkdown";
 import { insertLink, markdownEditorKeymap, toggleWrap } from "./extensions/markdownKeymap";
 import { selectionRangeListener, type SelectionRange } from "./extensions/selectionToolbar";
 import { slashCommandKeymap, slashRangeField, slashRangeListener, type SlashMenuBridge, type SlashRange } from "./extensions/slashCommands";
 import { tableKeymap } from "./extensions/tableKeymap";
+import { tableDecorationsField } from "./extensions/tableWidget";
 import { markdownEditorTheme } from "./extensions/theme";
 import { codeHighlighting, languages } from "./highlighting";
 import { SelectionToolbar } from "./SelectionToolbar";
@@ -33,16 +34,23 @@ export type MarkdownEditorProps = {
   /** Extra CodeMirror extensions for host-specific behavior (e.g. tag completion, paste handling). Memoize this. */
   extensions?: Extension[];
   className?: string;
+  workspaceId?: string;
 };
 
 type SlashMenuState = { range: SlashRange; query: string; anchor: { left: number; top: number; bottom: number } } | null;
 
 export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(function MarkdownEditor(
-  { value, onChange, placeholder, readOnly = false, commands, extensions, className },
+  { value, onChange, placeholder, readOnly = false, commands, extensions, className, workspaceId },
   ref,
 ) {
   const parent = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
+  // A dedicated compartment lets a card flipping between read-only display
+  // and edit mode reconfigure editability in place instead of recreating the
+  // EditorView - recreating it would reset the selection to the document
+  // start, so a click that lands mid-document to start editing would always
+  // jump the caret back to the top.
+  const readOnlyCompartment = useMemo(() => new Compartment(), []);
 
   const onChangeRef = useRef(onChange);
   useEffect(() => {
@@ -202,7 +210,8 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           baseSetup,
           markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: true }),
           codeHighlighting,
-          liveMarkdown,
+          createLiveMarkdown(workspaceId),
+          tableDecorationsField,
           linkClickExtension,
           markdownEditorKeymap,
           keymap.of(tableKeymap),
@@ -212,8 +221,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           selectionRangeListener(updateSelectionFromRange),
           EditorView.lineWrapping,
           markdownEditorTheme,
-          EditorView.editable.of(!readOnly),
-          EditorState.readOnly.of(readOnly),
+          readOnlyCompartment.of([EditorView.editable.of(!readOnly), EditorState.readOnly.of(readOnly)]),
           placeholder ? placeholderExtension(placeholder) : [],
           extensions ?? [],
           EditorView.updateListener.of((update) => {
@@ -223,10 +231,6 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
       }),
     });
     view.current = instance;
-    // The editor only draws a visible caret once it actually has DOM focus
-    // (CodeMirror hides `.cm-cursor` otherwise) - without this, a card that
-    // just switched into edit mode shows no caret until clicked a second time.
-    if (!readOnly) instance.focus();
 
     const handleScroll = () => {
       recomputeSlashPosition();
@@ -248,7 +252,17 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
     // `value` is synced by the effect below; recreate only when config that
     // can't be cheaply reconfigured changes (mirrors log-editor.tsx's editor).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [readOnly, placeholder, extensions]);
+  }, [placeholder, extensions, workspaceId]);
+
+  useEffect(() => {
+    const instance = view.current;
+    if (!instance) return;
+    instance.dispatch({ effects: readOnlyCompartment.reconfigure([EditorView.editable.of(!readOnly), EditorState.readOnly.of(readOnly)]) });
+    // The editor only draws a visible caret once it actually has DOM focus
+    // (CodeMirror hides `.cm-cursor` otherwise) - without this, a card that
+    // just switched into edit mode shows no caret until clicked a second time.
+    if (!readOnly) instance.focus();
+  }, [readOnly, readOnlyCompartment]);
 
   useEffect(() => {
     const instance = view.current;

@@ -5,16 +5,18 @@ import type { Extension } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { insertNewlineContinueMarkup } from "@codemirror/lang-markdown";
 import { PaperclipIcon, LoaderCircleIcon, VideoIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import type { EditorCommand } from "@/components/editor/commands/editorCommands";
 import { MarkdownEditor, type MarkdownEditorHandle } from "@/components/editor/MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useWorkspace } from "@/components/workspace-provider";
 
 const AUTOSAVE_DELAY = 800;
 
-export function LogEditor({ initialTitle = "", initialBody = "", tags = [], saving, onSave, onSubmit, onCancel, onPasteFile, autoSave = false, footerMessage, titleClassName = "text-base md:text-base font-heading font-medium leading-snug", showTitle = true }: { initialTitle?: string; initialBody?: string; tags?: string[]; saving?: boolean; onSave: (values: { title: string | null; body: string }) => void; onSubmit?: (values: { title: string | null; body: string }) => void; onCancel?: () => void; onPasteFile?: (file: File, values: { title: string | null; body: string }) => Promise<string>; autoSave?: boolean; footerMessage?: ReactNode; titleClassName?: string; showTitle?: boolean }) {
+export function LogEditor({ initialTitle = "", initialBody = "", tags = [], saving, onSave, onSubmit, onCancel, onPasteFile, autoSave = false, titleClassName = "text-base md:text-base font-heading font-medium leading-snug", showTitle = true, readOnly = false, showFooter = true, className }: { initialTitle?: string; initialBody?: string; tags?: string[]; saving?: boolean; onSave: (values: { title: string | null; body: string }) => void; onSubmit?: (values: { title: string | null; body: string }) => void; onCancel?: () => void; onPasteFile?: (file: File, values: { title: string | null; body: string }) => Promise<string>; autoSave?: boolean; titleClassName?: string; showTitle?: boolean; readOnly?: boolean; showFooter?: boolean; className?: string }) {
+  const { workspace } = useWorkspace();
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
   const editor = useRef<MarkdownEditorHandle>(null);
@@ -172,12 +174,12 @@ export function LogEditor({ initialTitle = "", initialBody = "", tags = [], savi
         drag-to-reposition from seeing pointerdown events that started
         inside the editor, so text selection/click-to-place-cursor keeps
         working when the card is draggable. */}
-    <div className="flex-1 min-h-0 flex flex-col text-sm" onPointerDownCapture={(event) => event.stopPropagation()}>
-      <MarkdownEditor ref={editor} value={body} onChange={setBody} commands={commands} extensions={extensions} className="flex-1 min-h-0 [&_.cm-editor]:h-full [&_.cm-scroller]:overflow-y-auto" />
+    <div className={`flex-1 min-h-0 flex flex-col text-sm ${className || ""}`} onPointerDownCapture={(event) => { if (!readOnly) event.stopPropagation(); }}>
+      <MarkdownEditor ref={editor} value={body} onChange={setBody} commands={commands} extensions={extensions} className="flex-1 min-h-0 [&_.cm-editor]:h-full [&_.cm-scroller]:overflow-y-auto" workspaceId={workspace.id} readOnly={readOnly} />
     </div>
-    <div className="flex items-center justify-between gap-2 pt-2 text-xs text-muted-foreground shrink-0">
-      <span>{footerMessage ?? <>Type / for commands{hasPasteHandler ? " · paste files" : ""}</>}</span>
-      {autoSave ? null : <div className="flex gap-2">{onCancel ? <Button variant="ghost" onClick={onCancel}>Cancel</Button> : null}<Button onClick={() => onSave({ title: title.trim() || null, body })} disabled={saving || !body.trim()}>{saving ? <LoaderCircleIcon data-icon="inline-start" className="animate-spin" /> : null}Save Log</Button></div>}
-    </div>
+    {showFooter && !autoSave ? <div className="flex items-center justify-end gap-2 pt-2 shrink-0">
+      {onCancel ? <Button variant="ghost" onClick={onCancel}>Cancel</Button> : null}
+      <Button onClick={() => onSave({ title: title.trim() || null, body })} disabled={saving || !body.trim()}>{saving ? <LoaderCircleIcon data-icon="inline-start" className="animate-spin" /> : null}Save Log</Button>
+    </div> : null}
   </div>;
 }

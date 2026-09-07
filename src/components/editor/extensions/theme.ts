@@ -71,7 +71,20 @@ export const markdownEditorTheme = EditorView.theme({
   ".cm-line:not(.cm-md-codeblock) + .cm-line.cm-md-codeblock, .cm-line.cm-md-codeblock:first-child": {
     borderTopLeftRadius: "var(--radius-sm)",
     borderTopRightRadius: "var(--radius-sm)",
-    paddingTop: "4px",
+    paddingTop: "1px",
+  },
+  // The header line (holding the widget's label/icons) doesn't need the
+  // editor's normal 1.5rem line-height - collapsing it keeps the gap before
+  // the first line of actual code tight.
+  ".cm-line:has(> .cm-md-code-block-widget)": {
+    lineHeight: "1",
+  },
+  // Copy/expand buttons stay hidden until the pointer is anywhere over the
+  // code block (codeBlockWidget.tsx wires hover across all of the block's
+  // lines, not just the header's), or while one of them has focus.
+  ".cm-md-codeblock-controls": { opacity: 0, transition: "opacity 120ms ease" },
+  ".cm-md-code-block-widget--hovered .cm-md-codeblock-controls, .cm-md-codeblock-controls:focus-within": {
+    opacity: 1,
   },
   ".cm-line.cm-md-codeblock:not(:has(+ .cm-line.cm-md-codeblock)), .cm-line.cm-md-codeblock:last-child": {
     borderBottomLeftRadius: "var(--radius-sm)",
@@ -93,6 +106,18 @@ export const markdownEditorTheme = EditorView.theme({
 
   ".cm-md-task-checkbox": { verticalAlign: "text-bottom", marginRight: "4px" },
   ".cm-md-task-checked": { color: "var(--muted-foreground)", textDecoration: "line-through" },
+
+  ".cm-md-due-date": {
+    display: "inline-flex",
+    padding: "0 6px",
+    borderRadius: "var(--radius-sm)",
+    backgroundColor: "var(--secondary)",
+    color: "var(--secondary-foreground)",
+    fontSize: "0.85em",
+    fontWeight: "500",
+    marginLeft: "4px",
+    verticalAlign: "middle",
+  },
 
   ".cm-tooltip.cm-tooltip-autocomplete": {
     minWidth: "240px",
