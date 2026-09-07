@@ -16,11 +16,13 @@ export class TaskCheckboxWidget extends WidgetType {
   }
 
   toDOM(view: EditorView) {
-    const box = document.createElement("input");
-    box.type = "checkbox";
-    box.checked = this.checked;
-    box.className = "cm-md-task-checkbox";
+    const box = document.createElement("button");
+    box.type = "button";
+    box.className = "cm-md-task-checkbox relative inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-input transition-colors outline-none align-middle cursor-pointer mx-1.5" + (this.checked ? " bg-primary border-primary text-primary-foreground" : " dark:bg-input/30");
     box.setAttribute("aria-label", this.checked ? "Mark task as not done" : "Mark task as done");
+    if (this.checked) {
+      box.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+    }
     // Prevent the mousedown from moving the CodeMirror caret before the click fires.
     box.onmousedown = (event) => event.preventDefault();
     box.onclick = (event) => {

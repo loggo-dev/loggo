@@ -184,6 +184,9 @@ function build(view: EditorView): DecorationSet {
             }
             const checked = state.sliceDoc(ref.from + 1, ref.from + 2).toLowerCase() === "x";
             span(ref.from, ref.to, taskCheckboxDecoration(ref.from, checked));
+            if (checked) {
+              span(ref.to, line.to, Decoration.mark({ class: "cm-md-task-checked" }));
+            }
             break;
           }
         }

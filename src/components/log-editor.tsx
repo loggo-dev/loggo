@@ -172,7 +172,7 @@ export function LogEditor({ initialTitle = "", initialBody = "", tags = [], savi
         drag-to-reposition from seeing pointerdown events that started
         inside the editor, so text selection/click-to-place-cursor keeps
         working when the card is draggable. */}
-    <div className="flex-1 min-h-0 flex flex-col" onPointerDownCapture={(event) => event.stopPropagation()}>
+    <div className="flex-1 min-h-0 flex flex-col text-sm" onPointerDownCapture={(event) => event.stopPropagation()}>
       <MarkdownEditor ref={editor} value={body} onChange={setBody} commands={commands} extensions={extensions} className="flex-1 min-h-0 [&_.cm-editor]:h-full [&_.cm-scroller]:overflow-y-auto" />
     </div>
     <div className="flex items-center justify-between gap-2 pt-2 text-xs text-muted-foreground shrink-0">

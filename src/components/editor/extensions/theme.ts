@@ -6,7 +6,7 @@ import { EditorView } from "@codemirror/view";
 export const markdownEditorTheme = EditorView.theme({
   "&": { background: "transparent", color: "var(--foreground)", outline: "none" },
   "&.cm-focused": { outline: "none" },
-  ".cm-scroller": { fontFamily: "var(--font-geist-sans)", lineHeight: "1.75rem" },
+  ".cm-scroller": { fontFamily: "var(--font-geist-sans)", lineHeight: "1.5rem" },
   // No horizontal padding: the editor should align flush with whatever
   // container it's placed in (which supplies its own padding), the same way
   // the rendered Markdown preview does - not read as an inset box.
@@ -21,12 +21,12 @@ export const markdownEditorTheme = EditorView.theme({
   ".cm-md-slash-hint": { color: "var(--muted-foreground)", pointerEvents: "none", userSelect: "none" },
 
   ".cm-md-heading": { fontWeight: "600" },
-  ".cm-md-h1": { fontSize: "1.6rem" },
-  ".cm-md-h2": { fontSize: "1.35rem" },
-  ".cm-md-h3": { fontSize: "1.15rem" },
-  ".cm-md-h4": { fontSize: "1.05rem" },
-  ".cm-md-h5": { fontSize: "1rem" },
-  ".cm-md-h6": { fontSize: "0.95rem", color: "var(--muted-foreground)" },
+  ".cm-md-h1": { fontSize: "1.5rem" }, /* text-2xl */
+  ".cm-md-h2": { fontSize: "1.25rem" }, /* text-xl */
+  ".cm-md-h3": { fontSize: "1.125rem" }, /* text-lg */
+  ".cm-md-h4": { fontSize: "1rem" },
+  ".cm-md-h5": { fontSize: "0.875rem" },
+  ".cm-md-h6": { fontSize: "0.875rem", color: "var(--muted-foreground)" },
 
   ".cm-md-strong": { fontWeight: "600" },
   ".cm-md-em": { fontStyle: "italic" },
@@ -75,7 +75,8 @@ export const markdownEditorTheme = EditorView.theme({
   // which is a light-mode-only blue that's unreadable in dark mode.
   ".cm-md-task-marker-raw, .cm-md-task-marker-raw *": { color: "var(--muted-foreground) !important" },
 
-  ".cm-md-task-checkbox": { verticalAlign: "middle", marginRight: "4px", accentColor: "var(--primary)", cursor: "pointer" },
+  ".cm-md-task-checkbox": { verticalAlign: "text-bottom", marginRight: "4px" },
+  ".cm-md-task-checked": { color: "var(--muted-foreground)", textDecoration: "line-through" },
 
   ".cm-tooltip.cm-tooltip-autocomplete": {
     minWidth: "240px",
