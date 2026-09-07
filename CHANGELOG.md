@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.6](https://github.com/loggo-dev/loggo/compare/v1.2.5...v1.2.6) (2026-09-07)
+
+
+### Bug Fixes
+
+* update database_id in wrangler.jsonc for correct database reference ([1f3e169](https://github.com/loggo-dev/loggo/commit/1f3e169f744c6012005a23a2d6fb83cb0ab52062))
+
 ## [1.2.5](https://github.com/loggo-dev/loggo/compare/v1.2.4...v1.2.5) (2026-09-07)
 
 
