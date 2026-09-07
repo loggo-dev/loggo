@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.7](https://github.com/loggo-dev/loggo/compare/v1.2.6...v1.2.7) (2026-09-07)
+
+
+### Bug Fixes
+
+* remove title prop from LogCardSkeleton and LogEditor for cleaner UI ([6ccd6a3](https://github.com/loggo-dev/loggo/commit/6ccd6a315e8bec70fad16ebfa16a5d2528bfed86))
+
 ## [1.2.6](https://github.com/loggo-dev/loggo/compare/v1.2.5...v1.2.6) (2026-09-07)
 
 
