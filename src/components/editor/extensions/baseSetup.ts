@@ -1,5 +1,5 @@
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language";
+
 import type { Extension } from "@codemirror/state";
 import { highlightSpecialChars, keymap } from "@codemirror/view";
 
@@ -13,6 +13,5 @@ import { highlightSpecialChars, keymap } from "@codemirror/view";
 export const baseSetup: Extension[] = [
   highlightSpecialChars(),
   history(),
-  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
   keymap.of([...defaultKeymap, ...historyKeymap]),
 ];

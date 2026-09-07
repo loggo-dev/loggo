@@ -5,21 +5,21 @@ const navRows = ["w-16", "w-12", "w-14", "w-10", "w-24"];
 const calendarDays = Array.from({ length: 35 });
 
 const boardCards = [
-  { height: 168, variant: "text" as const, lines: 4, title: true, badge: false },
-  { height: 190, variant: "task" as const, lines: 5, title: true, badge: true },
-  { height: 194, variant: "attachment" as const, lines: 2, title: true, badge: false },
-  { height: 164, variant: "code" as const, lines: 2, title: true, badge: false },
-  { height: 156, variant: "text" as const, lines: 3, title: false, badge: false },
-  { height: 176, variant: "task" as const, lines: 4, title: true, badge: true },
-  { height: 150, variant: "text" as const, lines: 3, title: true, badge: false },
-  { height: 150, variant: "code" as const, lines: 2, title: false, badge: false },
-  { height: 150, variant: "task" as const, lines: 3, title: false, badge: true },
+  { height: 168, variant: "text" as const, lines: 4, badge: false },
+  { height: 190, variant: "task" as const, lines: 5, badge: true },
+  { height: 194, variant: "attachment" as const, lines: 2, badge: false },
+  { height: 164, variant: "code" as const, lines: 2, badge: false },
+  { height: 156, variant: "text" as const, lines: 3, badge: false },
+  { height: 176, variant: "task" as const, lines: 4, badge: true },
+  { height: 150, variant: "text" as const, lines: 3, badge: false },
+  { height: 150, variant: "code" as const, lines: 2, badge: false },
+  { height: 150, variant: "task" as const, lines: 3, badge: true },
 ];
 
 function BoardCardsSkeleton() {
   return <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] items-start gap-4 p-1">{boardCards.map((card, index) => (
     <div key={index} className={index === 0 ? "block" : "hidden md:block"} style={{ height: card.height }}>
-      <LogCardSkeleton variant={card.variant} lines={card.lines} title={card.title} badge={card.badge} className="h-full" />
+      <LogCardSkeleton variant={card.variant} lines={card.lines} badge={card.badge} className="h-full" />
     </div>
   ))}</div>;
 }

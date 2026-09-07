@@ -37,7 +37,7 @@ export const markdownEditorTheme = EditorView.theme({
     borderRadius: "var(--radius-sm)",
     padding: "0 4px",
   },
-  ".cm-md-link": { color: "var(--primary)", textDecoration: "underline", textUnderlineOffset: "3px", cursor: "text" },
+  ".cm-md-link, .cm-md-link *": { color: "var(--primary) !important", textDecoration: "underline", textUnderlineOffset: "3px", cursor: "text" },
 
   ".cm-md-blockquote": {
     borderLeft: "3px solid var(--border)",
@@ -63,7 +63,17 @@ export const markdownEditorTheme = EditorView.theme({
     paddingBottom: "4px",
   },
   ".cm-md-list-marker": { color: "var(--muted-foreground)" },
-  ".cm-md-hr": { color: "var(--muted-foreground)" },
+  ".cm-md-hr": {
+    color: "var(--muted-foreground) !important",
+    borderBottom: "2px solid var(--border)",
+    width: "100%",
+    marginBottom: "0.5rem",
+    marginTop: "0.5rem"
+  },
+  ".cm-md-hr *": { color: "var(--muted-foreground) !important" },
+  // Overrides Lezer's default "atom" style for the raw "[ ]"/"[x]" text,
+  // which is a light-mode-only blue that's unreadable in dark mode.
+  ".cm-md-task-marker-raw, .cm-md-task-marker-raw *": { color: "var(--muted-foreground) !important" },
 
   ".cm-md-task-checkbox": { verticalAlign: "middle", marginRight: "4px", accentColor: "var(--primary)", cursor: "pointer" },
 

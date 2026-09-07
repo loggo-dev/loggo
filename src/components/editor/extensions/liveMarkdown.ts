@@ -26,6 +26,7 @@ const emphasisMark = Decoration.mark({ class: "cm-md-em" });
 const inlineCodeMark = Decoration.mark({ class: "cm-md-code" });
 const linkTextMark = Decoration.mark({ class: "cm-md-link" });
 const listMarkerMark = Decoration.mark({ class: "cm-md-list-marker" });
+const taskMarkerRawMark = Decoration.mark({ class: "cm-md-task-marker-raw" });
 const blockquoteLine = Decoration.line({ class: "cm-md-blockquote" });
 const codeBlockLine = Decoration.line({ class: "cm-md-codeblock" });
 const hrLine = Decoration.line({ class: "cm-md-hr" });
@@ -173,9 +174,14 @@ function build(view: EditorView): DecorationSet {
           }
           case "TaskMarker": {
             // Keep the raw "[ ]"/"[x]" editable while the cursor is on this
-            // line; render the interactive checkbox everywhere else.
+            // line; render the interactive checkbox everywhere else. The raw
+            // text otherwise falls through to Lezer's default "atom" style,
+            // a light-mode-only blue that's unreadable in dark mode.
             const line = state.doc.lineAt(ref.from);
-            if (selectionOverlaps(state, line.from, line.to)) break;
+            if (selectionOverlaps(state, line.from, line.to)) {
+              span(ref.from, ref.to, taskMarkerRawMark);
+              break;
+            }
             const checked = state.sliceDoc(ref.from + 1, ref.from + 2).toLowerCase() === "x";
             span(ref.from, ref.to, taskCheckboxDecoration(ref.from, checked));
             break;

@@ -20,7 +20,7 @@ export function QuickCaptureBar({ expanded, onExpandedChange, tags, saving, onQu
   const [quick, setQuick] = useState("");
 
   if (expanded) {
-    return <Card><CardContent><LogEditor tags={tags} saving={saving} onSave={onSave} onSubmit={onSave} onCancel={() => { onExpandedChange(false); onCancel(); }} onPasteFile={onPasteFile} /></CardContent></Card>;
+    return <Card><CardContent><LogEditor tags={tags} saving={saving} onSave={onSave} onSubmit={onSave} onCancel={() => { onExpandedChange(false); onCancel(); }} onPasteFile={onPasteFile} showTitle={false} /></CardContent></Card>;
   }
 
   const submit = () => {

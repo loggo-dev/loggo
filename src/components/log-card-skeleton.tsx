@@ -1,12 +1,11 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export type LogCardSkeletonVariant = "text" | "task" | "code" | "attachment";
 
-export function LogCardSkeleton({ className, variant = "text", lines = 3, title = true, badge = false }: { className?: string; variant?: LogCardSkeletonVariant; lines?: number; title?: boolean; badge?: boolean }) {
+export function LogCardSkeleton({ className, variant = "text", lines = 3, badge = false }: { className?: string; variant?: LogCardSkeletonVariant; lines?: number; badge?: boolean }) {
   return <Card className={`relative ${className ?? ""}`} aria-hidden="true">
     {badge ? <Skeleton className="absolute right-2 top-2 h-5 w-9 rounded-full" /> : null}
-    {title ? <CardHeader className="gap-2 pb-2"><Skeleton className="h-4 w-2/5" /></CardHeader> : null}
     <CardContent className="flex flex-col gap-2">
       {variant === "code" ? (
         <>

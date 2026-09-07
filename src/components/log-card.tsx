@@ -14,7 +14,7 @@ import { MarkdownPreview } from "@/components/markdown-preview";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useWorkspace } from "@/components/workspace-provider";
 
 export type DragProps = { x: number; y: number; zIndex?: number | null; onMove: (x: number, y: number) => void; onBringToFront?: () => void; onSendToBack?: () => void; width?: number | null; height?: number | null; onResize?: (width: number, height: number) => void };
@@ -115,7 +115,7 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
     const editCardProps = drag
       ? { className: `touch-none select-none flex flex-col z-0 ${dragPos.isDragging ? "shadow-sm" : ""}`, style: { ...positionStyle, ...resolvedStyle, cursor: dragPos.isDragging ? "grabbing" : undefined }, "data-log-id": log.id, ...dragPos.handlers }
       : { className: "mb-4 break-inside-avoid w-full z-0 flex flex-col", style: resolvedStyle };
-    return <Card {...editCardProps} ref={editRef}><CardContent className={(drag || resize || fixedHeight != null) ? "flex-1 min-h-0 flex flex-col" : ""}><LogEditor initialTitle={log.title ?? ""} initialBody={log.body} tags={log.tags} saving={update.isPending} onSave={(values) => update.mutate(values)} onSubmit={(values) => { update.mutate(values); setEditing(false); }} onPasteFile={pasteFile} autoSave footerMessage={`Updated ${new Date(log.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}${log.mirrorDirty ? " · mirror pending" : ""}`} /></CardContent>{showResize ? <ResizeHandle handlers={resizeHook.handlers} /> : null}</Card>;
+    return <Card {...editCardProps} ref={editRef}><CardContent className={(drag || resize || fixedHeight != null) ? "flex-1 min-h-0 flex flex-col" : ""}><LogEditor initialTitle={log.title ?? ""} initialBody={log.body} tags={log.tags} saving={update.isPending} onSave={(values) => update.mutate(values)} onSubmit={(values) => { update.mutate(values); setEditing(false); }} onPasteFile={pasteFile} autoSave showTitle={false} footerMessage={`Updated ${new Date(log.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}${log.mirrorDirty ? " · mirror pending" : ""}`} /></CardContent>{showResize ? <ResizeHandle handlers={resizeHook.handlers} /> : null}</Card>;
   }
 
   const cardProps = drag
@@ -126,8 +126,7 @@ export function LogCard({ log, tasks, onToggleTask, onDuplicate, drag, resize, c
 
   return <><ContextMenu><ContextMenuTrigger render={<Card {...cardProps} />}>
     {taskCount > 0 ? <Badge variant="secondary" className="absolute right-2 top-2 z-10 gap-1"><ListChecksIcon className="size-3" />{taskCount}</Badge> : null}
-    {log.title ? <CardHeader className="shrink-0 pb-0"><CardTitle>{log.title}</CardTitle></CardHeader> : null}
-    <CardContent className={`min-h-0 ${log.title ? "pt-0" : ""} ${isResized ? "flex-1 flex flex-col" : ""}`}><CardBody log={log} workspaceId={workspace.id} tasks={tasks} onToggleTask={log.isLocked ? undefined : onToggleTask} onDeleteAttachment={log.isLocked ? undefined : (attachmentId, markdown) => deleteAttachment.mutate({ attachmentId, markdown })} isResized={isResized} /></CardContent>
+    <CardContent className={`min-h-0 ${isResized ? "flex-1 flex flex-col" : ""}`}><CardBody log={log} workspaceId={workspace.id} tasks={tasks} onToggleTask={log.isLocked ? undefined : onToggleTask} onDeleteAttachment={log.isLocked ? undefined : (attachmentId, markdown) => deleteAttachment.mutate({ attachmentId, markdown })} isResized={isResized} /></CardContent>
     {showResize ? <ResizeHandle handlers={resizeHook.handlers} /> : null}
   </ContextMenuTrigger><ContextMenuContent><ContextMenuGroup>
     {!log.isLocked && <ContextMenuItem onClick={() => setEditing(true)}><PencilIcon />Edit</ContextMenuItem>}

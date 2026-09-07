@@ -17,12 +17,12 @@ import { LogFilterMenu } from "@/components/log-filter-menu";
 
 const LOG_CARD_HEIGHT = 280;
 
-const loadingCards: { variant: LogCardSkeletonVariant; title?: boolean; badge?: boolean; lines?: number }[] = [
+const loadingCards: { variant: LogCardSkeletonVariant; badge?: boolean; lines?: number }[] = [
   { variant: "text", lines: 4 },
   { variant: "task", lines: 5, badge: true },
   { variant: "attachment" },
   { variant: "code" },
-  { variant: "text", lines: 3, title: false },
+  { variant: "text", lines: 3 },
   { variant: "task", lines: 4, badge: true },
 ];
 
@@ -63,7 +63,7 @@ export function LogsView({ initialTag }: { initialTag?: string }) {
         onToChange={(val) => { setTo(val); setPage(1); }}
       />
     </div>
-    {logs.isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1 auto-rows-min items-start">{loadingCards.map((card, index) => <div key={index} className="col-span-1" style={{ height: LOG_CARD_HEIGHT }}><LogCardSkeleton variant={card.variant} lines={card.lines} title={card.title} badge={card.badge} className="h-full w-full" /></div>)}</div> : logs.data?.logs.length ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1 auto-rows-min items-start">{logs.data.logs.map((log) => {
+    {logs.isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1 auto-rows-min items-start">{loadingCards.map((card, index) => <div key={index} className="col-span-1" style={{ height: LOG_CARD_HEIGHT }}><LogCardSkeleton variant={card.variant} lines={card.lines} badge={card.badge} className="h-full w-full" /></div>)}</div> : logs.data?.logs.length ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1 auto-rows-min items-start">{logs.data.logs.map((log) => {
       let colSpan = "col-span-1";
       if (log.width) {
         if (log.width > 900) colSpan = "col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4";

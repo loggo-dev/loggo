@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 
 const AUTOSAVE_DELAY = 800;
 
-export function LogEditor({ initialTitle = "", initialBody = "", tags = [], saving, onSave, onSubmit, onCancel, onPasteFile, autoSave = false, footerMessage, titleClassName = "text-base md:text-base font-heading font-medium leading-snug" }: { initialTitle?: string; initialBody?: string; tags?: string[]; saving?: boolean; onSave: (values: { title: string | null; body: string }) => void; onSubmit?: (values: { title: string | null; body: string }) => void; onCancel?: () => void; onPasteFile?: (file: File, values: { title: string | null; body: string }) => Promise<string>; autoSave?: boolean; footerMessage?: ReactNode; titleClassName?: string }) {
+export function LogEditor({ initialTitle = "", initialBody = "", tags = [], saving, onSave, onSubmit, onCancel, onPasteFile, autoSave = false, footerMessage, titleClassName = "text-base md:text-base font-heading font-medium leading-snug", showTitle = true }: { initialTitle?: string; initialBody?: string; tags?: string[]; saving?: boolean; onSave: (values: { title: string | null; body: string }) => void; onSubmit?: (values: { title: string | null; body: string }) => void; onCancel?: () => void; onPasteFile?: (file: File, values: { title: string | null; body: string }) => Promise<string>; autoSave?: boolean; footerMessage?: ReactNode; titleClassName?: string; showTitle?: boolean }) {
   const [title, setTitle] = useState(initialTitle);
   const [body, setBody] = useState(initialBody);
   const editor = useRef<MarkdownEditorHandle>(null);
@@ -163,7 +163,7 @@ export function LogEditor({ initialTitle = "", initialBody = "", tags = [], savi
   }, [autoSave]);
 
   return <div className="flex flex-col gap-1 h-full">
-    <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Title (optional)" className={`h-auto shrink-0 rounded-none border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent ${titleClassName}`} />
+    {showTitle ? <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Title (optional)" className={`h-auto shrink-0 rounded-none border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0 dark:bg-transparent ${titleClassName}`} /> : null}
     <input ref={fileInput} type="file" className="hidden" onChange={handleAttachment} />
     {/* No separate "edit mode" chrome and no Preview tab - the live-preview
         editor already looks like rendered Markdown, so entering edit mode

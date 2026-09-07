@@ -17,7 +17,7 @@ export async function searchWorkspace(db: AppDb, workspaceId: string, query: str
   if (!query.trim()) return [];
   const match = ftsQuery(query);
   const logRows = await db.all(sql`
-    SELECT 'log' AS type, l.id, coalesce(l.title, 'Untitled Log') AS title,
+    SELECT 'log' AS type, l.id, snippet(logs_fts, 3, '', '', ' … ', 24) AS title,
       snippet(logs_fts, 3, '<mark>', '</mark>', ' … ', 24) AS snippet, l.day
     FROM logs_fts JOIN logs l ON l.id = logs_fts.log_id
     WHERE logs_fts MATCH ${match} AND logs_fts.workspace_id = ${workspaceId} AND l.deleted_at IS NULL
