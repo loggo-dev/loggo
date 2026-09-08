@@ -7,6 +7,7 @@ import { api } from "@/lib/api-client";
 import { AppLoadingSkeleton } from "@/components/app-loading-skeleton";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SearchPalette } from "@/components/search-palette";
+import { SearchTrigger } from "@/components/search-trigger";
 import { WorkspaceProvider } from "@/components/workspace-provider";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
@@ -26,8 +27,9 @@ export function AppShell({ children, defaultSidebarOpen }: { children: React.Rea
     <SidebarProvider defaultOpen={defaultSidebarOpen} style={{ "--sidebar-width": isCalendarVisible ? "31.875rem" : "13rem", "--sidebar-width-icon": isCalendarVisible ? "21.875rem" : "3rem" } as React.CSSProperties}>
       <AppSidebar showSecondarySidebar={showSecondarySidebar} calendarOpen={calendarOpen} onToggleCalendar={() => setCalendarOpen(!calendarOpen)} />
       <SidebarInset>
-        <header className="sticky top-0 z-20 flex h-12 items-center border-b bg-background/90 px-4 backdrop-blur md:hidden">
+        <header className="sticky top-0 z-20 flex h-12 items-center gap-2 border-b bg-background/90 px-4 backdrop-blur md:hidden">
           <SidebarTrigger />
+          <SearchTrigger className="flex-1" />
         </header>
         <div className="min-w-0 flex-1">{children}</div>
       </SidebarInset>

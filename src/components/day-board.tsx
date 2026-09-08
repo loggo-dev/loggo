@@ -38,7 +38,7 @@ function DayToolbar({ parsed, layout, setLayout, shift, goToday, handleTidy, isT
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => shift(-1)}><ChevronLeftIcon />Previous day<DropdownMenuShortcut>⌘←</DropdownMenuShortcut></DropdownMenuItem>
-              <DropdownMenuItem onClick={goToday}><CalendarDaysIcon />Today</DropdownMenuItem>
+              <DropdownMenuItem onClick={goToday}><CalendarDaysIcon />Today<DropdownMenuShortcut>⌘↑</DropdownMenuShortcut></DropdownMenuItem>
               <DropdownMenuItem onClick={() => shift(1)}><ChevronRightIcon />Next day<DropdownMenuShortcut>⌘→</DropdownMenuShortcut></DropdownMenuItem>
             </DropdownMenuGroup>
             {layout === "canvas" ? (
@@ -223,11 +223,12 @@ export function DayBoard({ date, autoNew = false }: { date: string; autoNew?: bo
       if (!(event.metaKey || event.ctrlKey)) return;
       if (event.key === "ArrowLeft") { event.preventDefault(); shift(-1); }
       else if (event.key === "ArrowRight") { event.preventDefault(); shift(1); }
+      else if (event.key === "ArrowUp") { event.preventDefault(); goToday(); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-    // `shift` is recreated each render off `date`, but it's a stable
-    // navigation call keyed by day - re-binding per keystroke isn't needed.
+    // `shift`/`goToday` are recreated each render off `date`, but they're
+    // stable navigation calls keyed by day - re-binding per keystroke isn't needed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date]);
 
