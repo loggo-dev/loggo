@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2](https://github.com/loggo-dev/loggo/compare/v1.3.1...v1.3.2) (2026-09-08)
+
+
+### Bug Fixes
+
+* add keyboard shortcuts for day navigation in day board ([810c0c7](https://github.com/loggo-dev/loggo/commit/810c0c70e429c77962b838bdc71faaa4af24e5a5))
+* add search trigger component and enhance sidebar navigation ([35cae86](https://github.com/loggo-dev/loggo/commit/35cae863cf1797467ab6c9398786f2c8afc9c478))
+
 ## [1.3.1](https://github.com/loggo-dev/loggo/compare/v1.3.0...v1.3.1) (2026-09-07)
 
 
