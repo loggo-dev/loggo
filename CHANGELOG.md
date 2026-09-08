@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.3](https://github.com/loggo-dev/loggo/compare/v1.3.2...v1.3.3) (2026-09-08)
+
+
+### Bug Fixes
+
+* add LinkWidget and LinkWidgetComponent for enhanced link handling in markdown editor ([d154393](https://github.com/loggo-dev/loggo/commit/d154393b3b49cedc673ef515fd737675f79dd352))
+* replace explicit any casts with typed DOM extensions in editor widgets ([97bbe15](https://github.com/loggo-dev/loggo/commit/97bbe15a16a8917d5eaf0cb14016c5b65ce6cca6))
+
 ## [1.3.2](https://github.com/loggo-dev/loggo/compare/v1.3.1...v1.3.2) (2026-09-08)
 
 
