@@ -1,8 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRightIcon, ListChecksIcon } from "lucide-react";
-import Link from "next/link";
+import { ListChecksIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
@@ -72,9 +71,6 @@ export function TasksCard({ date, floating = true }: { date: string; floating?: 
           <span className={task.done ? "text-muted-foreground line-through" : undefined}>{task.text}</span>
         </label>)}
       </div>}
-      <Link href="/tasks" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline">
-        View all tasks<ArrowRightIcon className="size-3" />
-      </Link>
     </CardContent>
   </Card>;
 }

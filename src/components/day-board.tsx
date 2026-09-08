@@ -37,9 +37,9 @@ function DayToolbar({ parsed, layout, setLayout, shift, goToday, handleTidy, isT
           <DropdownMenuTrigger render={<Button size="icon-sm" variant="ghost" aria-label="Board actions" />}><EllipsisIcon className="size-4" /></DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => shift(-1)}><ChevronLeftIcon />Previous day</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => shift(-1)}><ChevronLeftIcon />Previous day<DropdownMenuShortcut>⌘←</DropdownMenuShortcut></DropdownMenuItem>
               <DropdownMenuItem onClick={goToday}><CalendarDaysIcon />Today</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => shift(1)}><ChevronRightIcon />Next day</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => shift(1)}><ChevronRightIcon />Next day<DropdownMenuShortcut>⌘→</DropdownMenuShortcut></DropdownMenuItem>
             </DropdownMenuGroup>
             {layout === "canvas" ? (
               <>
@@ -69,7 +69,7 @@ import { LogCard } from "@/components/log-card";
 import { QuickCaptureBar } from "@/components/quick-capture-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { useDayLayout } from "@/hooks/use-day-layout";
 
@@ -218,6 +218,18 @@ export function DayBoard({ date, autoNew = false }: { date: string; autoNew?: bo
   const parsed = parseISO(date);
   const shift = (days: number) => { const next = new Date(`${date}T12:00:00`); next.setDate(next.getDate() + days); router.push(`/d/${format(next, "yyyy-MM-dd")}`); };
   const goToday = () => router.push(`/d/${format(new Date(), "yyyy-MM-dd")}`);
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey)) return;
+      if (event.key === "ArrowLeft") { event.preventDefault(); shift(-1); }
+      else if (event.key === "ArrowRight") { event.preventDefault(); shift(1); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+    // `shift` is recreated each render off `date`, but it's a stable
+    // navigation call keyed by day - re-binding per keystroke isn't needed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date]);
 
   const openTaskCount = tasks.data?.tasks.filter((task) => !task.done).length ?? 0;
 
