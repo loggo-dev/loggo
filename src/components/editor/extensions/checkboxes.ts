@@ -1,5 +1,10 @@
 import { Decoration, EditorView, WidgetType } from "@codemirror/view";
 
+// toDOM stashes the checked state used to render this button directly on
+// the element, so updateDOM can tell whether the existing DOM can be reused
+// as-is - not a real DOM property, hence the extended type.
+type CheckboxDOM = HTMLButtonElement & { checkedState?: boolean };
+
 // Replaces a GFM `TaskMarker` node's raw "[ ]" / "[x]" text with a real
 // checkbox. Clicking it flips the single character inside the brackets,
 // keeping Markdown as the only source of truth (no parallel task model).
@@ -16,7 +21,7 @@ export class TaskCheckboxWidget extends WidgetType {
   }
 
   updateDOM(dom: HTMLElement, view: EditorView) {
-    if ((dom as any).checkedState === this.checked) {
+    if ((dom as CheckboxDOM).checkedState === this.checked) {
       dom.onclick = (event) => {
         event.preventDefault();
         view.dispatch({
@@ -29,8 +34,8 @@ export class TaskCheckboxWidget extends WidgetType {
   }
 
   toDOM(view: EditorView) {
-    const box = document.createElement("button");
-    (box as any).checkedState = this.checked;
+    const box = document.createElement("button") as CheckboxDOM;
+    box.checkedState = this.checked;
     box.type = "button";
     box.className = "cm-md-task-checkbox relative inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-input transition-colors outline-none align-middle cursor-pointer mx-1.5" + (this.checked ? " bg-primary border-primary text-primary-foreground" : " dark:bg-input/30");
     box.setAttribute("aria-label", this.checked ? "Mark task as not done" : "Mark task as done");

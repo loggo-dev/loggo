@@ -3,6 +3,12 @@ import { createRoot, type Root } from "react-dom/client";
 import { WidgetType, EditorView } from "@codemirror/view";
 import { AttachmentWidgetComponent } from "./AttachmentWidgetComponent";
 
+// toDOM/updateDOM/destroy stash the mounted React root (and the widget
+// instance it was rendered from) directly on the container element, so a
+// later update can compare against and reuse the existing root instead of
+// remounting - these aren't real DOM properties, hence the extended type.
+type AttachmentWidgetDOM = HTMLElement & { reactRoot?: Root; widgetState?: AttachmentWidget };
+
 export class AttachmentWidget extends WidgetType {
   constructor(
     readonly title: string,
@@ -23,12 +29,13 @@ export class AttachmentWidget extends WidgetType {
   }
 
   updateDOM(dom: HTMLElement, view: EditorView) {
-    const other = (dom as any).widgetState as AttachmentWidget;
+    const element = dom as AttachmentWidgetDOM;
+    const other = element.widgetState;
     // Only update if the visual properties are the same (so we can reuse the component)
     if (other && other.title === this.title && other.ext === this.ext && other.isImage === this.isImage && other.resolvedUrl === this.resolvedUrl && other.workspaceId === this.workspaceId) {
-      const root = (dom as any).reactRoot as Root;
+      const root = element.reactRoot;
       if (root) {
-        (dom as any).widgetState = this;
+        element.widgetState = this;
         root.render(
           <AttachmentWidgetComponent 
             title={this.title} 
@@ -59,8 +66,9 @@ export class AttachmentWidget extends WidgetType {
     container.contentEditable = "false";
 
     const root = createRoot(container);
-    (container as any).reactRoot = root;
-    (container as any).widgetState = this;
+    const element = container as AttachmentWidgetDOM;
+    element.reactRoot = root;
+    element.widgetState = this;
     
     root.render(
       <AttachmentWidgetComponent 
@@ -79,7 +87,7 @@ export class AttachmentWidget extends WidgetType {
   }
 
   destroy(dom: HTMLElement) {
-    const root = (dom as any).reactRoot as Root;
+    const root = (dom as AttachmentWidgetDOM).reactRoot;
     if (root) {
       setTimeout(() => root.unmount(), 0);
     }
