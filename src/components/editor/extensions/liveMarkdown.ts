@@ -5,6 +5,7 @@ import { taskCheckboxDecoration } from "./checkboxes";
 import { AttachmentWidget } from "./attachmentWidget";
 import { CodeBlockWidget } from "./codeBlockWidget";
 import { YoutubeWidget } from "./youtubeWidget";
+import { LinkWidget } from "./linkWidget";
 import { resolveDueDate } from "@/server/domain/parse-markdown";
 
 
@@ -29,6 +30,7 @@ function hideThroughSpace(state: EditorState, from: number, to: number, limit: n
 const hide = Decoration.replace({});
 const strongMark = Decoration.mark({ class: "cm-md-strong" });
 const emphasisMark = Decoration.mark({ class: "cm-md-em" });
+const strikethroughMark = Decoration.mark({ class: "cm-md-strikethrough" });
 const inlineCodeMark = Decoration.mark({ class: "cm-md-code" });
 const linkTextMark = Decoration.mark({ class: "cm-md-link" });
 const listMarkerMark = Decoration.mark({ class: "cm-md-list-marker" });
@@ -107,6 +109,19 @@ function build(view: EditorView, workspaceId?: string, day?: string): Decoration
             }
             break;
           }
+          case "Strikethrough": {
+            const node = ref.node;
+            const marks = node.getChildren("StrikethroughMark");
+            const open = marks[0];
+            const close = marks[marks.length - 1];
+            if (!open || !close || open === close) break;
+            span(open.to, close.from, strikethroughMark);
+            if (!selectionOverlaps(view, node.from, node.to)) {
+              span(open.from, open.to, hide);
+              span(close.from, close.to, hide);
+            }
+            break;
+          }
           case "InlineCode": {
             const node = ref.node;
             const marks = node.getChildren("CodeMark");
@@ -129,6 +144,11 @@ function build(view: EditorView, workspaceId?: string, day?: string): Decoration
                 widget: new YoutubeWidget(ytMatch[1], "YouTube Video")
               }));
               return false; // Skip children
+            } else if (!selectionOverlaps(view, ref.from, ref.to)) {
+              span(ref.from, ref.to, Decoration.replace({
+                widget: new LinkWidget(url, url, ref.from, ref.to)
+              }));
+              return false;
             } else {
               span(ref.from, ref.to, linkTextMark);
             }
@@ -167,6 +187,12 @@ function build(view: EditorView, workspaceId?: string, day?: string): Decoration
                 widget: new AttachmentWidget(title, ext, isImage, url, node.from, node.to, workspaceId)
               }));
               return false; // Skip children
+            } else if (ref.name === "Link" && !selectionOverlaps(view, node.from, node.to)) {
+              const text = state.sliceDoc(openBracket.to, closeBracket.from);
+              span(node.from, node.to, Decoration.replace({
+                widget: new LinkWidget(text, url, node.from, node.to)
+              }));
+              return false;
             } else {
               span(openBracket.to, closeBracket.from, linkTextMark);
               if (!selectionOverlaps(view, node.from, node.to)) {

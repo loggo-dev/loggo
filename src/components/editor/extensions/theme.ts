@@ -30,6 +30,7 @@ export const markdownEditorTheme = EditorView.theme({
 
   ".cm-md-strong": { fontWeight: "600" },
   ".cm-md-em": { fontStyle: "italic" },
+  ".cm-md-strikethrough": { textDecoration: "line-through" },
   ".cm-md-code": {
     fontFamily: "var(--font-geist-mono)",
     fontSize: "0.9em",
