@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarDaysIcon, CheckSquare2Icon, ChevronsUpDownIcon, FileIcon, HashIcon, LogOutIcon, NotebookTabsIcon, PlusIcon, SettingsIcon } from "lucide-react";
+import { CalendarDaysIcon, CheckSquare2Icon, ChevronsUpDownIcon, FileIcon, HashIcon, HelpCircleIcon, LogOutIcon, NotebookTabsIcon, PlusIcon, SettingsIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api-client";
@@ -96,7 +96,10 @@ export function AppSidebar({ showSecondarySidebar, calendarOpen, onToggleCalenda
                 <DropdownMenuContent className="min-w-56 rounded-lg" side={isMobile ? "bottom" : "right"} align="end" sideOffset={4}>
                   <DropdownMenuGroup><DropdownMenuLabel className="p-0 font-normal"><div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm"><UserAvatar name={user.name} color={user.color} className="size-8 rounded-lg" /><div className="grid flex-1 text-left text-sm leading-tight"><span className="truncate font-medium">{user.name}</span><span className="truncate text-xs">{user.email}</span></div></div></DropdownMenuLabel></DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuGroup><DropdownMenuItem onClick={() => { router.push("/settings"); closeMobileSidebar(); }}><SettingsIcon />Settings</DropdownMenuItem></DropdownMenuGroup>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => { router.push("/settings"); closeMobileSidebar(); }}><SettingsIcon />Settings</DropdownMenuItem>
+                    <DropdownMenuItem render={<a href="https://docs.loggo.dev" target="_blank" rel="noopener noreferrer" />}><HelpCircleIcon />Help</DropdownMenuItem>
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => logout.mutate()}><LogOutIcon />Log out</DropdownMenuItem>
                 </DropdownMenuContent>
