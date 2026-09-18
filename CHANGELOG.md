@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/loggo-dev/loggo/compare/v1.3.3...v1.3.4) (2026-09-18)
+
+
+### Bug Fixes
+
+* add Help menu item to sidebar for improved user assistance ([085d7d4](https://github.com/loggo-dev/loggo/commit/085d7d493a6c73401197caa1fd4036cf59163baa))
+
 ## [1.3.3](https://github.com/loggo-dev/loggo/compare/v1.3.2...v1.3.3) (2026-09-08)
 
 
