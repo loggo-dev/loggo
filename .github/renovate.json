@@ -1,0 +1,132 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommitsDisabled",
+    ":dependencyDashboard"
+  ],
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "timezone": "UTC",
+  "prConcurrentLimit": 5,
+  "minimumReleaseAge": "3 days",
+  "labels": [
+    "dependencies"
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": [
+      "before 6am on the first day of the month"
+    ],
+    "commitMessagePrefix": "chore(deps):"
+  },
+  "packageRules": [
+    {
+      "description": "Runtime dependencies ship in the Docker image, so they get a patch release",
+      "matchDepTypes": [
+        "dependencies"
+      ],
+      "commitMessagePrefix": "fix(deps):"
+    },
+    {
+      "description": "Dev dependencies and CI do not change the app, so no release",
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "commitMessagePrefix": "chore(deps):"
+    },
+    {
+      "matchManagers": [
+        "github-actions",
+        "dockerfile",
+        "docker-compose"
+      ],
+      "commitMessagePrefix": "chore(deps):"
+    },
+    {
+      "description": "Next.js and its ESLint config are pinned to the same version",
+      "groupName": "next",
+      "matchPackageNames": [
+        "next",
+        "eslint-config-next"
+      ]
+    },
+    {
+      "groupName": "react",
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ]
+    },
+    {
+      "groupName": "codemirror",
+      "matchPackageNames": [
+        "codemirror",
+        "@codemirror/**",
+        "@lezer/**"
+      ]
+    },
+    {
+      "groupName": "drizzle",
+      "matchPackageNames": [
+        "drizzle-orm",
+        "drizzle-kit"
+      ]
+    },
+    {
+      "description": "Workers demo build",
+      "groupName": "cloudflare",
+      "matchPackageNames": [
+        "wrangler",
+        "@opennextjs/cloudflare",
+        "@cloudflare/**"
+      ]
+    },
+    {
+      "groupName": "eslint",
+      "matchPackageNames": [
+        "eslint",
+        "eslint-*",
+        "@eslint/**"
+      ]
+    },
+    {
+      "groupName": "tailwindcss",
+      "matchPackageNames": [
+        "tailwindcss",
+        "@tailwindcss/**",
+        "tw-animate-css"
+      ]
+    },
+    {
+      "description": "Keep the Docker base image on the Node 22 line. Move to a new Node major by hand.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "node"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Node types follow the Node 22 runtime in the Dockerfile",
+      "matchPackageNames": [
+        "@types/node"
+      ],
+      "allowedVersions": "22.x"
+    },
+    {
+      "description": "Group all GitHub Actions updates",
+      "groupName": "github actions",
+      "matchManagers": [
+        "github-actions"
+      ]
+    }
+  ]
+}
