@@ -5,9 +5,6 @@
     ":semanticCommitsDisabled",
     ":dependencyDashboard"
   ],
-  "schedule": [
-    "before 6am on monday"
-  ],
   "timezone": "UTC",
   "prConcurrentLimit": 5,
   "minimumReleaseAge": "3 days",
