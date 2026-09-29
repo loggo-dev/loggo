@@ -6,6 +6,7 @@
     ":dependencyDashboard"
   ],
   "timezone": "UTC",
+  "rangeStrategy": "bump",
   "prConcurrentLimit": 5,
   "minimumReleaseAge": "3 days",
   "labels": [
