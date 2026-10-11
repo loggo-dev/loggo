@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.5](https://github.com/loggo-dev/loggo/compare/v1.3.4...v1.3.5) (2026-10-11)
+
+
+### Bug Fixes
+
+* **deps:** bump package.json range to match lockfile update ([0ef266b](https://github.com/loggo-dev/loggo/commit/0ef266b36f0341322663ebc1ac568a11379db6c3))
+* **deps:** Update dependency next to v16.3.6 [SECURITY] ([5378461](https://github.com/loggo-dev/loggo/commit/537846151171166229db75944bf85d6a070ca36e))
+* **deps:** Update dependency next to v16.3.6 [SECURITY] ([3827b43](https://github.com/loggo-dev/loggo/commit/3827b4336be815cb0cbd73fecb6c66ec007d74a6))
+
 ## [1.3.4](https://github.com/loggo-dev/loggo/compare/v1.3.3...v1.3.4) (2026-09-24)
 
 
