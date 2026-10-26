@@ -64,7 +64,7 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.4.0",
+    "eslint-config-next": "16.4.3",
     "playwright": "^1.62.1",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
